@@ -1,5 +1,5 @@
-import { createCategory } from "@/services/sessionService";
-import { useState } from "react";
+import { createCategory, getCategory } from "@/services/CategoryService";
+import { use, useState } from "react";
 
 interface Category {
   label: string;
@@ -26,4 +26,26 @@ export function useCreateCategory() {
      };
 
      return { isLoading, error, data, handleCreateCategory };
+}
+
+export function useGetCategory() {
+     const [isLoading, setIsLoading] = useState(false);
+     const [error, setError] = useState<string | null>(null);
+     const [data, setData] = useState<{label: string, slug: string}[] | null>(null);
+
+     const handleGetCategory = async (label?:string) => {
+          setIsLoading(true);
+          setError(null);
+
+          try {
+               const response = await getCategory();
+               setData(response);
+          } catch (error) {
+               setError('Ops, tivemos um problema ao carregar as categorias.');
+          } finally {
+               setIsLoading(false);
+          }
+     };
+
+     return { isLoading, error, data, handleGetCategory };
 }

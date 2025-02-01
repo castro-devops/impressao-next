@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const publicRoutes: { path: string; access: 'private' | 'next' }[] = [
      { path: '/', access: 'next' }, // Página pública
-     { path: '/category/novo', access: 'next' }, // Página pública
+     { path: '/category', access: 'next' }, // Página pública
 ];
 
 const REDIRECT_DEFAULT = '/';

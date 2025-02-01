@@ -1,6 +1,6 @@
 'use client'
 
-import { getCategory } from "@/services/sessionService";
+import { getCategory } from "@/services/CategoryService";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -17,7 +17,7 @@ console.log(category);
     <div>
       <h1>Olá mundo</h1>
       <Link href="/produto/novo">Novo produto</Link>
-      <Link href="/category/novo">Nova categoria</Link>
+      <Link href="/category">Nova categoria</Link>
 
       <div>
 
