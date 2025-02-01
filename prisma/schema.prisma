@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // ou "mysql" dependendo do banco que estiver usando
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id    String @id @default(uuid())
+  label String
+  slug  String? @unique
+}
+
+model Product {
+  id          String         @id @default(uuid())
+  name        String
+  description String
+  category    String
+  price       Float
+  quantity    Int
+  config      ProductConfig?
+}
+
+model ProductConfig {
+  id        String   @id @default(uuid())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String   @unique
+  name      String
+  values    Json
+}
+
+model Order {
+  id      String @id @default(uuid())
+  status  String
+  details Json
+  price   Float
+  clients ClientOrder[]
+}
+
+model Client {
+  id      String @id @default(uuid())
+  ip      String
+  contact String
+  city    String
+  uf      String
+  orders  ClientOrder[]
+}
+
+model ClientOrder {
+  clientId String
+  orderId  String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  order    Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  @@id([clientId, orderId])
+}
+
+model Auth {
+  id         String   @id @default(uuid()) 
+  token      String   @unique
+  expired    Boolean  @default(false)       // Indica se o token foi invalidado manualmente
+  createdAt  DateTime @default(now())       // Data de criação do token
+  expiresAt  DateTime                        // Expiração do token (7 dias)
+  ip_user    String   @unique                // O IP do usuário (impede múltiplos registros)
+  user_agent String?
+}
