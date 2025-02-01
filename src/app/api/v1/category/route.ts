@@ -7,12 +7,25 @@ export async function GET(request: NextRequest) {
      if (request.method !== 'GET') return NextResponse.json({ error: 'Método GET HTTP não permitido' });
 
      const { searchParams } = new URL(request.url);
-     const id = searchParams.get('id');
+     const label = searchParams.get('label') || '';
      
-     const query = await prisma.category.findMany();
+     const categories = await prisma.category.findMany({
+          where: {
+               label: {
+                    contains: label,
+                    mode: 'insensitive',
+               }
+          },
+          orderBy: {
+               label: 'asc',
+          }
+     });
 
-     if (query) return NextResponse.json(query);
-     return NextResponse.json({ error: 'Nenhuma sessão localizada' });
+     if (categories.length > 0) {
+          return NextResponse.json(categories);
+     } else {
+          return NextResponse.json({ error: 'Nenhuma categoria encontrada' });
+     }
 
 }
 
@@ -33,4 +46,25 @@ export async function POST(request: NextRequest, response: NextResponse) {
           return NextResponse.json({ error: "Erro ao criar categoria.", details: error });
      }
 
+}
+
+export async function DELETE(request: NextRequest) {
+     try {
+          const { searchParams } = new URL(request.url);
+          const slug = searchParams.get('slug');
+
+          if (!slug) {
+               return NextResponse.json({ error: 'Slug único não fornecido.'}, { status: 400 });
+          }
+
+          const deletedCategory = await prisma.category.delete({
+               where: {
+                    slug: String(slug)
+               }
+          });
+
+          return NextResponse.json({ message: "Categoria deletada com sucesso!", deletedCategory });
+     } catch (error) {
+        return NextResponse.json({ error: "Erro ao deletar categoria", details: error }, { status: 500 });
+    }
 }
