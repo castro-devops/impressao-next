@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
 }
 
-export async function POST(request: NextRequest, response: NextResponse) {
+export async function POST(request: NextRequest) {
 
      const { label } = await request.json();
      if (!label) return NextResponse.json({ error: "O campo 'label' é obrigatório." });
