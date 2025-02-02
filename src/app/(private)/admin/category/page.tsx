@@ -43,10 +43,10 @@ export default function Novo() {
     <div className="relative h-full p-4 flex flex-col gap-5">
       {/* Barra de navegação */}
       <div className="relative bg-white flex justify-stretch rounded-lg shadow-sm border border-neutral-100 text-center">
-        <a href="/" className="py-3 px-5 flex-1 transition border-b-2 border-white hover:border-blue-500">Shop</a>
-        <a href="/" className="py-3 px-5 flex-1 transition border-b-2 border-white hover:border-blue-500">Produtos</a>
-        <a href="/" className="py-3 px-5 flex-1 transition border-b-2 border-white hover:border-blue-500">Categorias</a>
-        <a onClick={userLogout} className="py-3 px-5 flex-1 transition border-b-2 border-white hover:border-blue-500">Sair</a>
+        <a href="/" className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500">Shop</a>
+        <a href="/" className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500">Produtos</a>
+        <a href="/" className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500">Categorias</a>
+        <a onClick={userLogout} className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500">Sair</a>
       </div>
 
       {/* Input e Botão de Criar Categoria */}
