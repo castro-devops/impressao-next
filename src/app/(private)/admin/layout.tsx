@@ -1,4 +1,4 @@
-import '../globals.css';
+import '../../globals.css';
 
 export const metadata = {
   title: 'Casa da Impressão - Categorias',
@@ -13,9 +13,8 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body
-        className={`relative bg-neutral-50 h-dvh`}>
-          <div className='relative max-w-[1224px] mx-auto mt-10 h-[100%] flex flex-col gap-5 p-1'>
-            <h1 className='text-3xl text-center'>Categorias</h1>
+        className={`relative lg:bg-neutral-50 py-10 h-dvh`}>
+          <div className='relative max-w-[1224px] mx-auto h-[100%] flex flex-col gap-5 p-1'>
             {children}
           </div>
       </body>

@@ -19,7 +19,7 @@ console.log(category);
     <div>
       <Header />
       <Link href="/produto/novo">Novo produto</Link>
-      <Link href="/category">Nova categoria</Link>
+      <Link href="/admin">Adminitrativo</Link>
 
       <div>
 

@@ -1,28 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
+import { jwtDecode } from "jwt-decode";
 
-const publicRoutes: { path: string; access: 'private' | 'next' }[] = [
-     { path: '/', access: 'next' }, // Página pública
-     { path: '/category', access: 'next' }, // Página pública
+const publicRoutes: { path: string; access: 'private' | 'public' }[] = [
+     { path: '/', access: 'public' }, // Página pública
+     { path: '/admin', access: 'private' }, // Página pública
+     { path: '/admin/*', access: 'private' }, // Página pública
 ];
 
 const REDIRECT_DEFAULT = '/';
-const ACCESS_KEY = process.env.ACCESS_KEY;
 
 export function middleware(request: NextRequest) {
      const path = request.nextUrl.pathname;
-     const accessKey = request.nextUrl.searchParams.get('access_key');
-
-     // Verifica se a rota é pública
      const publicRoute = publicRoutes.find(route => route.path === path);
+     const token = request.cookies.get("token")?.value.toString();
+     let decoded = {
+          exp: 0,
+     };
+     if (token) {
+          decoded = jwtDecode(token);
+     }
 
      // Se for uma rota pública, permite o acesso
-     if (publicRoute) {
+     if (!token && publicRoute) {
           return NextResponse.next();
      }
 
-     // Se for uma rota privada e a chave de acesso for inválida, redireciona
-     if (!ACCESS_KEY || ACCESS_KEY !== accessKey) {
-          return NextResponse.redirect(new URL(REDIRECT_DEFAULT, request.nextUrl));
+     if (!token && !publicRoute) {
+          const redirectUrl = request.nextUrl.clone();
+          redirectUrl.pathname = REDIRECT_DEFAULT;
+          return NextResponse.redirect(redirectUrl);
+     }
+
+     if (token && publicRoute && publicRoute.access === 'private') {
+          const redirectUrl = request.nextUrl.clone();
+          redirectUrl.pathname = '/admin/category';
+          return NextResponse.redirect(redirectUrl);
+     }
+
+     if (token && !publicRoute) {
+          const currentTime = Date.now() / 1000;
+          try {
+               if (currentTime > decoded.exp!) {
+                    const response = NextResponse.redirect('/admin');
+                    response.cookies.delete('token'); // Deleta o cookie 'token'
+                    return response;
+               }
+          } catch (error) {
+               console.error('Erro ao verificar o token:', error);
+          }
+          // Se a chave estiver correta, permite o acesso
+          return NextResponse.next();
      }
 
      // Se a chave estiver correta, permite o acesso

@@ -1,12 +1,17 @@
 'use client';
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useCreateCategory, useDiscardCategory, useGetCategory } from "@/hooks/useCreateCategory";
 import '@fortawesome/fontawesome-svg-core/styles.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faTrash, faSpinner } from '@fortawesome/free-solid-svg-icons';  // Importando ícone de loading
+import { useSignOut } from 'react-firebase-hooks/auth';
+import { auth } from "@/services/FirebaseConfig";
+import { useRouter } from "next/navigation";
 
 export default function Novo() {
+  const router = useRouter();
+  const [signOut, loading, error] = useSignOut(auth);
   const [label, setLabel] = useState('');
   const { isLoading: createLoading, error: createError, handleCreateCategory } = useCreateCategory();
   const { isLoading: fetchLoading, error: fetchError, data: fetchData, handleGetCategory } = useGetCategory();
@@ -16,6 +21,14 @@ export default function Novo() {
     handleCreateCategory(label);
     setLabel('');
   };
+
+  const userLogout = async () => {
+    const success = await signOut();
+    if (success) {
+      document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"
+    }
+    router.push('/');
+  }
 
   useEffect(() => {
     handleGetCategory(label);
@@ -33,6 +46,7 @@ export default function Novo() {
         <a href="/" className="py-3 px-5 flex-1 transition border-b-2 border-white hover:border-blue-500">Shop</a>
         <a href="/" className="py-3 px-5 flex-1 transition border-b-2 border-white hover:border-blue-500">Produtos</a>
         <a href="/" className="py-3 px-5 flex-1 transition border-b-2 border-white hover:border-blue-500">Categorias</a>
+        <a onClick={userLogout} className="py-3 px-5 flex-1 transition border-b-2 border-white hover:border-blue-500">Sair</a>
       </div>
 
       {/* Input e Botão de Criar Categoria */}
