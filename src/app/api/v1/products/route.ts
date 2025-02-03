@@ -2,26 +2,41 @@ import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-     const products = await prisma.product.findMany();
-     if (products) return NextResponse.json(products);
-     return NextResponse.json({ error: 'Não foi possível carregar todos os produtos'});
+    try {
+        const products = await prisma.product.findMany();
+        return NextResponse.json(products, { status: 200 });
+    } catch (error) {
+        console.error("Erro ao buscar os produtos:", error); // Logando o erro
+        return NextResponse.json(
+            { error: "Erro ao buscar os produtos." },
+            { status: 500 }
+        );
+    }
 }
 
-export async function POST( request: Request ) {
-     const { name, description, category, price, quantity } = await request.json();
+export async function POST(request: Request) {
+    try {
+        const { name, description, category, price, quantity } = await request.json();
 
-     try {
-          const newProduct = await prisma.product.create({
-               data: {
-                    name,
-                    description,
-                    category,
-                    price,
-                    quantity
-               }
-          });
-          return NextResponse.json(newProduct, { status: 201 });
-     } catch ( error ) {
-          return NextResponse.json({ error: 'Tivemos um erro ao cadastrar o produto' }, { status: 400 });
-     }
+        // 🔹 Validação manual para garantir que todos os campos necessários estão preenchidos
+        if (!name || !category || price === undefined || quantity === undefined) {
+            return NextResponse.json(
+                { error: "Os campos nome, categoria, preço e quantidade são obrigatórios." },
+                { status: 400 }
+            );
+        }
+
+        // 🔹 Criando o produto
+        const newProduct = await prisma.product.create({
+            data: { name, description, category, price, quantity },
+        });
+
+        return NextResponse.json(newProduct, { status: 201 });
+    } catch (error) {
+        console.error("Erro ao cadastrar o produto:", error instanceof Error ? error.message : error); // Logando o erro com segurança
+        return NextResponse.json(
+            { error: "Tivemos um erro ao cadastrar o produto." },
+            { status: 500 }
+        );
+    }
 }

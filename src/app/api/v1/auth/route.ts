@@ -10,7 +10,7 @@ export async function POST(req: Request) {
     const response = NextResponse.json({ message: "Token armazenado" });
     
     response.cookies.set("token", token, {
-        httpOnly: true, // Torna o cookie inacessível ao JavaScript no navegador
+        httpOnly: false, // Torna o cookie inacessível ao JavaScript no navegador
         secure: process.env.NODE_ENV === "production", // Apenas HTTPS em produção
         sameSite: "strict", // Previne ataques CSRF
         path: "/", // O cookie estará disponível em todas as rotas
