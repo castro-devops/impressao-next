@@ -4,10 +4,10 @@
  * @param options Configurações da requisição [opcional]
  * @returns [response json do EndPoint]
  */
-export async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
+export async function apiFetch<T>(url: string, options?: RequestInit, contentType?: string): Promise<T> {
     const response: Response = await fetch(url, {
         headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': contentType ?? 'application/json',
         },
         ...options,
     });
@@ -23,11 +23,11 @@ export async function get<T> (url: string): Promise<T> {
      return apiFetch(url);
 }
 
-export async function post<T> (url: string, data: any): Promise<T> {
-     return apiFetch(url, {
-          method: 'POST',
-          body: JSON.stringify(data),
-     });
+export async function post<T>(url: string, data: any): Promise<T> {
+  return apiFetch(url, {
+    method: "POST",
+    body: data,
+  });
 }
 
 export async function put<T> (url: string, data: any): Promise<T> {
@@ -41,9 +41,6 @@ export async function discard<T>(url: string, body?: unknown): Promise<T> {
     try {
         const response = await apiFetch<T>(url, {
             method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            },
             body: body ? JSON.stringify(body) : undefined,
         });
 

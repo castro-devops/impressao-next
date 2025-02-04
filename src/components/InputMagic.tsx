@@ -1,8 +1,5 @@
-import { moneyArrayBRL, moneyBRL } from "@/utils/formatMoney";
 import { faEdit } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useState } from "react";
-import { InputNumberFormat, unformat } from '@react-input/number-format';
 
 type TInputMagic = {
      edit       ?: boolean,
@@ -51,7 +48,7 @@ export function InputMagic({
     return (
         <div className="flex items-center bg-slate-100 rounded-md flex-1 w-full">
             {type === "money" ? (
-               <input type="text" className={`w-full outline-none bg-transparent  ${className}`} value={value} onChange={onChange} />
+               <input type="text" className={`w-full outline-none bg-transparent ${className}`} value={value} onChange={onChange} />
             ) : type === "checkbox" ? (
                 <input
                     type="checkbox"
@@ -63,7 +60,7 @@ export function InputMagic({
                 <input
                     type={type}
                     onChange={onChange}
-                    className={`w-full outline-none bg-transparent ${className}`}
+                    className={`w-full outline-none bg-transparent ${className} text-2xl`}
                     value={String(value)}
                     placeholder={placeholder}
                     disabled={disabled}

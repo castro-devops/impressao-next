@@ -112,6 +112,7 @@ export function Product({
                               </label>)}
                     </Carousel>
                     <section className="lg:flex-1 lg:p-5">
+                         <p className="text-lg mb-1 text-neutral-400">Agendas</p>
                          <section className="mt-10 lg:mt-0 mb-5 flex items-center gap-2.5">
                               <InputMagic type="text" className="text-3xl" value={product.name} edit={editMagic} onChange={e => handleChange(e, 'name')} placeholder="Nome do produto" />
                          </section>
