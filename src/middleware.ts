@@ -39,9 +39,11 @@ export function middleware(request: NextRequest) {
 
      if (token && !publicRoute) {
           const currentTime = Date.now() / 1000;
+          const redirectUrl = request.nextUrl.clone();
+          redirectUrl.pathname = '/admin';
           try {
                if (currentTime > decoded.exp!) {
-                    const response = NextResponse.redirect('/admin');
+                    const response = NextResponse.redirect(redirectUrl);
                     response.cookies.delete('token'); // Deleta o cookie 'token'
                     return response;
                }

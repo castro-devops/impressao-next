@@ -14,4 +14,12 @@ function moneyArrayBRL(price: number) {
 
 }
 
-export { moneyBRL, moneyArrayBRL };
+function moneyToNumber(price: string | number): number {
+  // Substituir ',' por '.' para tratar valores no formato brasileiro
+  let initPrice = price.toString().replace(',', '.');
+  let formattedPrice = Number(initPrice.replace(/\D.\D+/g, ""));
+
+  return formattedPrice;
+}
+
+export { moneyBRL, moneyArrayBRL, moneyToNumber };

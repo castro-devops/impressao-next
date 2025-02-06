@@ -1,52 +1,52 @@
-/**
- * Método construtor default para requisições do lado 'Client'
- * @param url Url EndPoint
- * @param options Configurações da requisição [opcional]
- * @returns [response json do EndPoint]
- */
-export async function apiFetch<T>(url: string, options?: RequestInit, contentType?: string): Promise<T> {
-    const response: Response = await fetch(url, {
-        headers: {
-            'Content-Type': contentType ?? 'application/json',
-        },
-        ...options,
+import { NextResponse } from "next/server";
+
+export async function apiFetch<T>(url: string, options: RequestInit): Promise<T> {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        ...options.headers,
+      },
+      ...options,
     });
 
-    if (!response.ok) {
-        throw new Error(`Erro: ${response.status} - ${response.statusText}`);
+    if(!response.ok) {
+      throw new Error(response.statusText);
     }
 
     return response.json() as Promise<T>;
+  } catch (error) {
+    throw new Error((error as Error).message);
+  }
 }
 
-export async function get<T> (url: string): Promise<T> {
-     return apiFetch(url);
+export async function get<T>(url: string, headers?: Record<string, string>) {
+  return await apiFetch<T>(url, {
+    method: 'GET',
+    headers: {
+      ...headers
+      }
+    });
 }
 
-export async function post<T>(url: string, data: any): Promise<T> {
-  return apiFetch(url, {
-    method: "POST",
-    body: data,
+export async function post<T>(url: string, options: { headers?: Record< string, string>, body: BodyInit}) {
+  return await apiFetch<T>(url, {
+    method: 'POST',
+    ...options
   });
 }
 
-export async function put<T> (url: string, data: any): Promise<T> {
-     return apiFetch(url, {
-          method: 'PUT',
-          body: JSON.stringify(data),
-     });
+export async function put<T>(url: string, options: { headers?: Record<string, string>, body: BodyInit}) {
+  return await apiFetch<T>(url, {
+    method: 'PUT',
+    ...options
+  });
 }
 
-export async function discard<T>(url: string, body?: unknown): Promise<T> {
-    try {
-        const response = await apiFetch<T>(url, {
-            method: 'DELETE',
-            body: body ? JSON.stringify(body) : undefined,
-        });
-
-        return response; // Já é do tipo T
-    } catch (error) {
-        console.error("Erro ao realizar DELETE:", error);
-        throw error;
+export async function del<T>(url: string, headers?: Record<string, string>) {
+  return await apiFetch<T>(url, {
+    method: 'DELETE',
+    headers: {
+      ...headers
     }
+  });
 }

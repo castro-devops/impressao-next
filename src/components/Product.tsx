@@ -1,164 +1,200 @@
-import { useEffect, useState } from "react";
-import { Carousel, CarouselContent, CarouselItem } from "./ui/carousel";
+'use client'
+import { Key, useEffect, useState } from "react";
+import Toast from "./toastLoading";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faPen, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faClose, faEye, faPen, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { Carousel, CarouselContent, CarouselItem } from "./ui/carousel";
 import { InputMagic } from "./InputMagic";
-import { moneyBRL } from "@/utils/formatMoney";
+import { moneyBRL, moneyToNumber } from "@/utils/formatMoney";
 import { useCreateProduct } from "@/hooks/useCreateProduct";
-import { useRouter } from "next/navigation";
 
-type IData = {
-     name: string,
+type TData = {
+     name        : string,
      description?: string,
-     quantity?: number,
-     price?: number | string,
-     category: string,
+     quantity    : number | string,
+     price       : number | string | null,
+     category    : string,
+}
+
+interface IData {
+  name        : string,
+  description?: string,
+  quantity    : number,
+  price       : number,
+  category    : string,
 }
 
 export function Product({
      data,
      create = false,
-}: { data?: IData, create?: boolean }) {
+}: { data?: TData, create?: boolean }) {
+  const [photos, setPhotos] = useState<FileList | null>(null);
+  const [photosSrcs, setPhotosSrcs] = useState<string[]>([]);
+  const [editMagic, setEditMagic] = useState<boolean>(create);
 
-     const { isLoading: createLoading, error: createError, handleCreateProduct } = useCreateProduct();
-     const router = useRouter();
-     const [images, setImages] = useState<string[]>([]);
-     const [editMagic, setEditMagic] = useState(create);
-     const [product, setProduct] = useState({
-          name: data?.name || '',
-          description: data?.description || '',
-          quantity: data?.quantity || 1,
-          price: data?.price || 0,
-          category: 'cadernos',
-     });
+  const { isLoading: loadingCreate, error: errorCreate, data: dataCreate, handleCreateProduct } = useCreateProduct();
 
-     function handleChange(e: React.ChangeEvent<HTMLInputElement> | { target: { value: string } }, field: string) {
-          let { value } = e.target;
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | boolean>(false);
 
-          if (field === "price") {
-               let formattedValue = moneyBRL(value);
-               setProduct((prev) => ({ ...prev, [field]: formattedValue }));
-          } else {
-               setProduct((prev) => ({ ...prev, [field]: value }));
+  const [product, setProduct] = useState<TData>({
+    name       : data?.name || '',
+    description: data?.description || '',
+    quantity   : data?.quantity || '',
+    price      : data?.price || '',
+    category   : data?.category || 'agendas',
+  });
+
+  useEffect(() => {
+    setTimeout(() => {
+      setError(false);
+    }, 5000);
+  }, [error]);
+
+  useEffect(() => {
+      setError(errorCreate?.message || false);
+  }, [errorCreate]);
+
+  useEffect(() => {
+    setProduct({
+      ...product,
+      price: moneyBRL(product.price || 0),
+    });
+  }, []);
+
+  const renderSetPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = e.target.files;
+      setPhotos(files);
+      const newPhotosSrcs: string[] = [];
+      Array.from(files).forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          newPhotosSrcs.push(reader.result as string);
+          if (newPhotosSrcs.length === files.length) {
+            setPhotosSrcs(newPhotosSrcs);
           }
-     }
+        }
+        reader.readAsDataURL(file);
+      });
+    }
+  }
 
-     // Formata o preço na primeira renderização
-     useEffect(() => {
-          handleChange({ target: { value: String(product.price) } }, "price")
-     }, []);
+  const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>, field: keyof TData) => {
+    let value = e.target.value;
+    if (field == 'price') { value = moneyBRL(value); }
+    setProduct({
+      ...product,
+      [field]: value
+    });
+  }
 
-     const handleProductSubmit = async () => {
-          const formattedProduct = {
-               ...product,
-               quantity: Number(String(product.quantity).replace(/[^\d,]/g, "").replace(",", ".")) || 0,
-               price: Number(String(product.price).replace(/[^\d,]/g, "").replace(",", ".")) || 0,
-          };
-          const success = await handleCreateProduct(formattedProduct);
-          if (success) {
-               setProduct({
-                    name: '',
-                    description: '',
-                    quantity: 1,
-                    price: 0,
-                    category: 'cadernos',
-               });
-               router.push('/admin/product');
-          } else {
-               // Lidar com erro (opcional)
-          }
-     }
+  const handleProductSubmit = () => {
+    setLoading(true);
+    // Converter o preço para número
+    const convertedPrice = moneyToNumber(product.price!);
 
-     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-          const files = event.target.files; // Obtém os arquivos selecionados
+    // Atualizar o produto com o preço convertido
+    const updatedProduct: TData = {
+      ...product,
+      price: convertedPrice,
+    };
 
-          if (files) {
-               const fileArray = Array.from(files);
-               const imageUrls: string[] = [];
+    // Verificar se o produto está válido
+    if (isValidProduct(updatedProduct)) {
+      const validProduct: IData = {
+        name       : updatedProduct.name,
+        description: updatedProduct.description,
+        category   : updatedProduct.category,
+        price      : updatedProduct.price,
+        quantity   : Number(updatedProduct.quantity),
+      };
 
-               // Cria URLs para as imagens
-               fileArray.forEach((file) => {
-               const reader = new FileReader();
+      handleCreateProduct(validProduct, photos!);
+      
+      setLoading(false);
+    } else {
+      setLoading(false);
+      setError('Os campos precisam ser preenchidos corretamente');
+    }
+  };
 
-               reader.onloadend = () => {
-                    if (reader.result) {
-                    imageUrls.push(reader.result as string); // Adiciona a URL da imagem ao array
-                    if (imageUrls.length === fileArray.length) {
-                    setImages(imageUrls); // Atualiza o estado com todas as imagens
-                    }
-                    }
-               };
+  const isValidProduct = (product: TData): product is IData => {
+    return (
+      (product.name !== '' && typeof product.name === 'string') &&
+      (typeof product.description === 'string' || typeof product.description === 'undefined') &&
+      (product.category !== '' && typeof product.category === 'string') &&
+      (product.price !== null && typeof product.price === 'number') &&
+      (Number(product.quantity) > 0 && typeof Number(product.quantity) === 'number') &&
+      (photos !== null)
+    );
+  };
 
-               reader.readAsDataURL(file); // Lê o arquivo como uma URL de dados (base64)
-               });
-          }
-     };
+  useEffect(() => {
+    setLoading(loadingCreate);
+  }, [loadingCreate]);
 
-     return (
-          <div className="w-auto md:w-full max-w-[1224px] flex flex-col">
-               <div className="flex flex-col lg:flex-row lg:gap-5">
-                    <Carousel opts={{ align: 'start', loop: true, }} className="aspect-square rounded-3xl overflow-hidden bg-neutral-300 lg:h-[596PX]">
-                         <CarouselContent className="aspect-square">
-                         {images.map((image, index) => (
-                              <CarouselItem key={`item - ${index}`} className="">
-                                   <img className="w-full h-full object-cover" key={image} src={image} alt="" />
-                              </CarouselItem>
-                         ))}
-                         </CarouselContent>
-                         {editMagic && (
-                              <label className="p-5 bg-blue-500 absolute bottom-2 right-2 leading-none aspect-square rounded-full text-white shadow-lg shadow-gray-500 hover:shadow-sm hover:shadow-gray-700 focus:shadow-md focus:shadow-gray-700 transition cursor-pointer">
-                                   <FontAwesomeIcon icon={faPlus} />
-                                   <input type="file" name="productPhotos[]" id="productPhotos" className="hidden" multiple onChange={handleFileChange} />
-                              </label>)}
-                    </Carousel>
-                    <section className="lg:flex-1 lg:p-5">
-                         <p className="text-lg mb-1 text-neutral-400">Agendas</p>
-                         <section className="mt-10 lg:mt-0 mb-5 flex items-center gap-2.5">
-                              <InputMagic type="text" className="text-3xl" value={product.name} edit={editMagic} onChange={e => handleChange(e, 'name')} placeholder="Nome do produto" />
-                         </section>
-                         <section className="mt-3 flex flex-col gap-8">
-                              <section>
-                                   <InputMagic value={product.quantity} edit={editMagic} type="quantity" onChange={e => handleChange(e, 'quantity')} placeholder="Quantidade" />
-                                   <InputMagic value={product.price} className="text-4xl leading-none" edit={editMagic} type="money" onChange={e => handleChange(e, 'price')} />
-                              </section>
-                              <section>
-                                   <p className="text-2xl text-neutral-700">Descrição</p>
-                                   <InputMagic value={product.description} edit={editMagic} onChange={e => handleChange(e, 'description')} placeholder="Descrição do produto" />
-                              </section>
-                         </section>
-                    </section>
-               </div>
 
-               {/* Exibe o Loading */}
-               {createLoading && (
-                    <div className="flex justify-center items-center mt-5">
-                         <div className="animate-spin rounded-full border-t-4 border-blue-500 w-10 h-10"></div>
-                         <span className="ml-2">Criando o produto...</span>
-                    </div>
-               )}
+  return (
+    <div className="w-auto md:w-full max-w-[1224px] flex flex-col gap-2">
+      {/* Evento de Loading */}
+      {loading && (
+        <Toast />
+      )}
+      {error && (
+      // Span de exibição da mensagem de erro
+      <div className="p-3 bg-red-100 flex items-center justify-between border-2 border-red-200 rounded-md font-medium text-red-600">
+        <span className="flex-1 text-center">{error}</span>
+        <FontAwesomeIcon icon={faClose} className="cursor-pointer" onClick={() => setError(false)} />
+      </div>)}
 
-               {/* Exibe o erro */}
-               {createError && (
-                    <div className="mt-5 p-4 bg-red-200 text-red-700 rounded-lg">
-                         <strong>Erro:</strong> {createError?.message || 'Ocorreu um erro ao criar o produto.'}
-                    </div>
-               )}
+      <div className="flex flex-col lg:flex-row lg:gap-5">
+        <Carousel opts={{ align: 'start', loop: true, }} className="aspect-square rounded-3xl overflow-hidden bg-neutral-300 lg:h-[596PX]">
+              <CarouselContent className="aspect-square">
+              {photosSrcs.map((image, index) => (
+                  <CarouselItem key={`item - ${index}`} className="">
+                        <img className="w-full h-full object-cover" key={image} src={image} alt="" />
+                  </CarouselItem>
+              ))}
+              </CarouselContent>
+              {(
+                  <label className="p-5 bg-blue-500 absolute bottom-2 right-2 leading-none aspect-square rounded-full text-white shadow-lg shadow-gray-500 hover:shadow-sm hover:shadow-gray-700 focus:shadow-md focus:shadow-gray-700 transition cursor-pointer">
+                        <FontAwesomeIcon icon={faPlus} />
+                        <input type="file" name="productPhotos[]" accept="image/png, image/jpeg" id="productPhotos" className="hidden" multiple onChange={renderSetPhotos} />
+                  </label>)}
+        </Carousel>
+        <section className="lg:flex-1 lg:p-5">
+          <p className="text-lg mb-1 text-neutral-400">Agendas</p>
+          <section className="mt-10 lg:mt-0 mb-5 flex items-center gap-2.5">
+              <InputMagic type="text" className="text-3xl" value={product.name} edit={editMagic} onChange={e => handleFieldChange(e, 'name')} placeholder="Nome do produto" />
+          </section>
+          <section className="mt-3 flex flex-col gap-8">
+              <section>
+                    <InputMagic value={product.quantity} edit={editMagic} type="quantity" onChange={e => handleFieldChange(e, 'quantity')} placeholder="Quantidade" />
+                    <InputMagic value={product.price || 0} className="text-4xl leading-none" edit={editMagic} type="money" onChange={e => handleFieldChange(e, 'price')} />
+              </section>
+              <section>
+                  <p className="text-2xl text-neutral-700">Descrição</p>
+                  <InputMagic value={product.description} edit={editMagic} onChange={e => handleFieldChange(e, 'description')} placeholder="Descrição do produto" />
+              </section>
+          </section>
+          <button
+            onClick={handleProductSubmit}
+            className="bg-blue-500 p-3 mt-3 rounded-lg shadow-md font-medium text-white"
+            disabled={loadingCreate} // Desabilita o botão durante o carregamento
+          >
+              Criar novo produto
+          </button>
+        </section>
+      </div>
 
-               {/* Botões */}
-               <button
-                    onClick={handleProductSubmit}
-                    className="bg-blue-500 p-3 mt-3 rounded-lg shadow-md font-medium text-white"
-                    disabled={createLoading} // Desabilita o botão durante o carregamento
-               >
-                    Criar novo produto
-               </button>
+        <button
+            onClick={() => setEditMagic(!editMagic)}
+            className={`fixed bottom-4 right-4 p-4 aspect-square rounded-full text-sm font-medium text-white border-2 border-white drop-shadow-md leading-none transition cursor-pointer ${editMagic ? 'bg-orange-500' : 'bg-blue-500'}`}
+        >
+            {editMagic ? <FontAwesomeIcon icon={faPen} /> : <FontAwesomeIcon icon={faEye} />}
+        </button>
 
-               <button
-                    onClick={() => setEditMagic(!editMagic)}
-                    className={`fixed bottom-4 right-4 p-4 aspect-square rounded-full text-sm font-medium text-white border-2 border-white drop-shadow-md leading-none transition cursor-pointer ${editMagic ? 'bg-orange-500' : 'bg-blue-500'}`}
-               >
-                    {editMagic ? <FontAwesomeIcon icon={faPen} /> : <FontAwesomeIcon icon={faEye} />}
-               </button>
-          </div>
-     )
+    </div>
+  )
 }

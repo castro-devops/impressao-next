@@ -1,12 +1,14 @@
 import { createProduct } from "@/services/ProductService";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSendPhoto } from "./useTelegram";
 
 interface IProduct {
-    name: string;
+    name        : string;
     description?: string;
-    category: string;
-    price: number;
-    quantity: number;
+    category    : string;
+    price       : number;
+    imgs_id     : string;
+    quantity    : number;
 }
 
 export function useCreateProduct() {
@@ -14,21 +16,38 @@ export function useCreateProduct() {
     const [error, setError] = useState<{ message: string; status: number } | null>(null);
     const [data, setData] = useState<IProduct | null>(null);
 
-    const handleCreateProduct = async (productData: IProduct) => {
-        setIsLoading(true);
-        setError(null);
+    const { handleSendPhoto, error: errorPhoto, isLoading: loadingPhoto } = useSendPhoto();
 
-        try {
-            const response = await createProduct(productData);
-            console.log(response);
-            setData(response);
-            return true;
-        } catch (err) {
-            setError({ message: "Erro ao criar um novo produto.", status: 500 });
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const handleCreateProduct = async (productData: IProduct, photos: FileList) => {
+      setIsLoading(true);
+      setError(null);
 
-    return { isLoading, error, data, handleCreateProduct };
+      try {
+      const savePhotos = await handleSendPhoto(photos);
+
+      if (!savePhotos || !savePhotos.ok) {
+        setError({ message: 'Ops, as fotos não puderam ser salvas, tente novamente', status: 500 });
+        return;
+      }
+      const groupPhotos = savePhotos.result.map((group: { photo: {file_id: string}[] }) => { return group.photo[0].file_id });
+      console.log(groupPhotos);
+
+      const finishProduct: IProduct = {
+        ...productData,
+        imgs_id: JSON.stringify(groupPhotos),
+      }
+
+      const response = await createProduct(finishProduct);
+      setData(response);
+      return response;
+
+    } catch (error) {
+        setError({ message: "Erro ao criar um novo produto.", status: 500 });
+        return null;
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  return { isLoading, error, data, handleCreateProduct };
 }

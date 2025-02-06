@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <div>
       <Header />
-      <TelegramForm />
+      <a href="/admin">Administrativo</a>
     </div>
   )
 }

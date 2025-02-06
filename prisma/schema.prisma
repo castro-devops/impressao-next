@@ -20,6 +20,7 @@ model Product {
   category    String
   price       Float
   quantity    Int
+  imgs_id     String
   config      ProductConfig?
 }
 
