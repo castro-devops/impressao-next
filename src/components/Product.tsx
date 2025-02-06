@@ -22,7 +22,6 @@ interface IData {
   quantity    : number,
   price       : number,
   category    : string,
-  imgs_id     : string[];
 }
 
 export function Product({

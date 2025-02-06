@@ -18,7 +18,7 @@ export function useCreateProduct() {
 
     const { handleSendPhoto, error: errorPhoto, isLoading: loadingPhoto } = useSendPhoto();
 
-    const handleCreateProduct = async (productData: IProduct, photos: FileList) => {
+    const handleCreateProduct = async (productData: Omit<IProduct, 'imgs_id'>, photos: FileList) => {
       setIsLoading(true);
       setError(null);
 
