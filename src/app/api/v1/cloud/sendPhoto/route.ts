@@ -1,7 +1,16 @@
 import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+
+export async function GET(request: NextRequest) {
+  console.log(request);
+  // const telegramUrl = `https://api.telegram.org/bot${botToken}/${file_id}`;
+}
+
 export async function POST(request: NextRequest) {
+  const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMediaGroup`;
   try {
     // Log para verificar o corpo da requisição
     const contentType = request.headers.get('content-type') || '';
@@ -13,10 +22,6 @@ export async function POST(request: NextRequest) {
     }
 
     const formData = await request.formData();
-
-    const chatId = process.env.TELEGRAM_CHAT_ID;
-    const botToken = process.env.TELEGRAM_BOT_TOKEN;
-    const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMediaGroup`;
 
     const photos = formData.getAll("photos"); // Obtém todos o arquivo
 

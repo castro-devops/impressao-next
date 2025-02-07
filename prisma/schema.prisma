@@ -14,22 +14,25 @@ model Category {
 }
 
 model Product {
-  id          String         @id @default(uuid())
+  id          String @id @default(uuid())
   name        String
+  slug        String? @unique
   description String
   category    String
   price       Float
   quantity    Int
   imgs_id     String
   config      ProductConfig?
+  created_at  DateTime @default(now())
+  updated_at  DateTime?
 }
 
 model ProductConfig {
-  id        String   @id @default(uuid())
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId String   @unique
-  name      String
-  values    Json
+  id        String  @id @default(uuid())
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String  @unique
+  schema    Json
+  createdAt DateTime @default(now())
 }
 
 model Order {

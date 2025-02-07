@@ -26,7 +26,7 @@ export function useCreateProduct() {
       const savePhotos = await handleSendPhoto(photos);
 
       if (!savePhotos || !savePhotos.ok) {
-        setError({ message: 'Ops, as fotos não puderam ser salvas, tente novamente', status: 500 });
+        setError({ message: errorPhoto?.message || 'Ops, as fotos não puderam ser salvas, tente novamente', status: 500 });
         return;
       }
       const groupPhotos = savePhotos.result.map((group: { photo: {file_id: string}[] }) => { return group.photo[0].file_id });

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import slugify from "slugify";
 
 export async function GET() {
     try {
@@ -17,6 +18,7 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const { name, description, category, price, quantity, imgs_id } = await request.json();
+        const slug = slugify(name, { strict: true, lower: true });
 
         // 🔹 Validação manual para garantir que todos os campos necessários estão preenchidos
         if (!name || !category || price === undefined || quantity === undefined) {
@@ -28,7 +30,7 @@ export async function POST(request: Request) {
 
         // 🔹 Criando o produto
         const newProduct = await prisma.product.create({
-            data: { name, description, category, price, quantity, imgs_id },
+            data: { name, slug, description, category, price, quantity, imgs_id },
         });
 
         return NextResponse.json(newProduct, { status: 201 });
