@@ -78,7 +78,7 @@ export default function Novo() {
       </div>
 
       {/* Se houver erro ao buscar categorias */}
-      {fetchError && <p className="text-red-500">Erro ao carregar categorias: {fetchError}</p>}
+      {fetchError && <p className="text-red-500">Erro ao carregar categorias: {fetchError.message}</p>}
 
       {/* Exibição das categorias */}
       <div className="flex-1 grid grid-flow-row auto-rows-max gap-2 md:grid-cols-2 lg:grid-cols-3">
