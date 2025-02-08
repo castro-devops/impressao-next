@@ -1,5 +1,7 @@
+'use client'
 import Header from "@/components/Header";
 import TelegramForm from "@/components/MessageForm";
+import { useState } from "react";
 
 export default function Home() {
   return (

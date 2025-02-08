@@ -30,7 +30,7 @@ export function useCreateCategory() {
 
 export function useGetCategory() {
      const [isLoading, setIsLoading] = useState(false);
-     const [error, setError] = useState<string | null>(null);
+     const [error, setError] = useState<{ message: string; status: number } | null>(null);
      const [data, setData] = useState<{label: string, slug: string}[] | null>(null);
 
      const handleGetCategory = async (label?: string) => {
@@ -38,12 +38,13 @@ export function useGetCategory() {
           setError(null);
 
           try {
-               const response = await getCategory(label);
-               setData(response);
+            const response = await getCategory(label)
+            console.log('response category', response);
+            setData(response);
           } catch (error) {
-               setError('Ops, tivemos um problema ao carregar as categorias.');
+            setError({message: 'Ops, tivemos um problema ao carregar as categorias.', status: 500});
           } finally {
-               setIsLoading(false);
+            setIsLoading(false);
           }
      };
 
