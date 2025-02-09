@@ -140,6 +140,9 @@ export function Product({
       };
 
       const response = await handleCreateProduct(validProduct, photos!);
+
+      
+
       setPhotos(null),
       setPhotosSrcs([]);
       setProduct({name: '', category: '', description: '', price: 'R$ 0,00', quantity: 1});
@@ -184,23 +187,22 @@ export function Product({
                   </CarouselItem>
               ))}
               </CarouselContent>
-              {(
+              {editMagic && (
                   <label className="p-5 bg-blue-500 absolute bottom-2 right-2 leading-none aspect-square rounded-full text-white shadow-lg shadow-gray-500 hover:shadow-sm hover:shadow-gray-700 focus:shadow-md focus:shadow-gray-700 transition cursor-pointer">
                         <FontAwesomeIcon icon={faPlus} />
                         <input type="file" name="productPhotos[]" accept="image/png, image/jpeg" id="productPhotos" className="hidden" multiple onChange={renderSetPhotos} />
                   </label>)}
         </Carousel>
         <section className="lg:flex-1 lg:p-5">
+          <section className="mt-10 lg:mt-0 mb-5 flex flex-col items-center gap-2.5">
           <InputMagic type="select"
           edit={editMagic}
           options={dataCategory!}
           placeholder="Selecione a categoria"
           value={Array.isArray(dataCategory) ? dataCategory.filter((item) => item.slug == product.category)[0] : ''}
           onChange={(e) => handleFieldChange(e.slug, 'category')}  />
-          <section className="mt-10 lg:mt-0 mb-5 flex items-center gap-2.5">
               <InputMagic type="text" className="text-3xl" value={product.name} edit={editMagic} onChange={e => handleFieldChange(e, 'name')} placeholder="Nome do produto" />
           </section>
-          
           <section className="mt-3 flex flex-col gap-8">
               <section>
                     <InputMagic value={product.quantity} edit={editMagic} type="quantity" onChange={e => handleFieldChange(e, 'quantity')} placeholder="Quantidade" />
@@ -213,14 +215,14 @@ export function Product({
           </section>
           <button
             onClick={handleProductSubmit}
-            className="bg-blue-500 p-3 mt-3 rounded-lg shadow-md font-medium text-white"
+            className="bg-blue-500 w-full lg:w-auto p-3 mt-3 rounded-lg shadow-md font-medium text-white"
             disabled={loadingCreate} // Desabilita o botão durante o carregamento
           >
               Criar novo produto
           </button>
         </section>
       </div>
-      <div className="w-1/2">
+      <div className="w-full lg:w-1/2">
         <ProductConfig />
       </div>
       <button

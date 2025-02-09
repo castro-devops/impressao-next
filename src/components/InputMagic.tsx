@@ -40,9 +40,9 @@ export function InputMagic({
         }
         if (type === "select") {
           if (typeof value === "object" && value !== null && "label" in value) {
-              return <p className="text-lg mb-1 text-neutral-400">{value.label}</p>;
+              return <p className="text-lg text-left w-full mb-1 text-neutral-400">{value.label}</p>;
           }
-          return <p className="text-lg mb-1 text-neutral-400">{String(value)}</p>;
+          return <p className="text-lg mb-1 text-left w-full text-neutral-400">{String(value)}</p>;
         }
         if (type === "checkbox") {
             return <p>{value ? "Sim" : "Não"}</p>;
@@ -54,7 +54,7 @@ export function InputMagic({
                </p>
           );
           }
-        return <p className={className}>{String(value)}</p>;
+        return <p className={`w-full text-left ${className}`}>{String(value)}</p>;
     }
 
     // Modo edição - Input renderizado conforme o tipo
@@ -84,7 +84,7 @@ export function InputMagic({
                     <ListboxOption
                       key={type.slug}
                       value={type}
-                      className="group relative cursor-default py-2 pr-9 pl-3 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden"
+                      className="group relative py-2 pr-9 pl-3 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden hover:bg-neutral-100 transiton cursor-pointer"
                     >
                       <div className="flex items-center">
                         <span className="ml-3 block truncate font-normal group-data-selected:font-semibold">{type.label}</span>
@@ -109,4 +109,12 @@ export function InputMagic({
             <FontAwesomeIcon icon={faEdit} className="mr-2 text-slate-400" />
         </div>
     );
+}
+
+export function SelectMagic() {
+  return <span></span>;
+}
+
+export function MoneyMagic() {
+  return <span></span>;
 }
