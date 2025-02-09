@@ -84,8 +84,12 @@ export default function ProductConfig() {
 
 function BaseConfig ({ config, remove, update, configs }: IBaseConfig) {
 
+  const returnField = () => {
+    if (config.type === 'quantity') return <QuantityConfig />
+  }
+
   return (
-    <div className="rounded-2xl text-neutral-800 border border-neutral-300 p-5 flex flex-col gap-1">
+    <div className="rounded-2xl text-neutral-800 border border-neutral-300 p-5 flex flex-col gap-1 bg-white">
 
       <div className="flex items-center justify-between">
         <p className="text-lg">Configurar {types.find(type => type.value === config.type)?.label}</p>
@@ -98,9 +102,9 @@ function BaseConfig ({ config, remove, update, configs }: IBaseConfig) {
 
       <div className="grid grid-cols-2 gap-2 items-center">
         <span className="leading-none flex-1">Tipo de campo</span>
-        <Listbox value={config} onChange={value => update(config.id, 'size')}>
+        <Listbox value={config.type} onChange={value => update(config.id, value || 'custom')}>
           <div className="relative mt-2 flex-1">
-            <ListboxButton className="grid w-full border border-neutral-300 cursor-default grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+            <ListboxButton className="grid w-full border border-neutral-300 cursor-pointer grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
               <span className="col-start-1 row-start-1 flex items-center gap-3 pr-6">
                 <span className="block truncate">{types.find(type => type.value === config.type)?.label}</span>
               </span>
@@ -113,7 +117,7 @@ function BaseConfig ({ config, remove, update, configs }: IBaseConfig) {
                 {types.filter(t => !configs.some(c => c.type === t.value)).map(item => (
                   <ListboxOption
                     key={item.value}
-                    value={item}
+                    value={item.value}
                     className="group relative py-2 pr-9 pl-3 text-gray-900 select-none data-focus:bg-indigo-600 data-focus:text-white data-focus:outline-hidden hover:bg-neutral-100 transiton cursor-pointer"
                   >
                     <div className="flex items-center">
@@ -129,6 +133,27 @@ function BaseConfig ({ config, remove, update, configs }: IBaseConfig) {
           </div>
         </Listbox>
       </div>
+
+      {returnField()}
     </div>
+  );
+}
+
+function QuantityConfig() {
+
+  const [prefixed, setPrefixed] = useState([]);
+
+  return (
+    <>
+    <div className="grid grid-cols-2 gap-2 items-center">
+      <span>Intervalo</span>
+      <input type="number" min={10} step={10} className="rounded-md bg-white py-1.5 pr-2 pl-3 border border-neutral-300 appearance-none" placeholder="10...20...30..." />
+    </div>
+    <p className="text-xs font-medium text-neutral-600">O intervalo define o saldo de quantidade que o cliente poderá personalizar caso queira uma quantidade fora do padrão. O valor final será calculado com base no padrão mais aproximado que o cliente definir.</p>
+    <button className="flex items-center gap-2 justify-center text-neutral-600">
+      <span>Adicionar valor</span>
+      <span className="w-7 flex items-center justify-center rounded-full border border-neutral-400 aspect-square"><FontAwesomeIcon icon={faPlus} /></span>
+    </button>
+    </>
   );
 }
