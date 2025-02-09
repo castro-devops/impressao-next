@@ -1,5 +1,6 @@
 'use client'
 
+import { moneyBRL } from "@/utils/formatMoney";
 import { faClose, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
@@ -141,19 +142,60 @@ function BaseConfig ({ config, remove, update, configs }: IBaseConfig) {
 
 function QuantityConfig() {
 
-  const [prefixed, setPrefixed] = useState([]);
+  const [entries, setEntries] = useState<{quantity: string; price: string}[]>([]);
+
+  const addEntry = () => {
+    if (entries.length < 6) {
+      setEntries([...entries, { quantity: "", price: moneyBRL(0) }]);
+    }
+  };
+
+  const updateEntry = (index: number, field: "quantity" | "price", value: string) => {
+    const newEntries = [...entries];
+    if (field == "price") {
+      newEntries[index][field] = moneyBRL(value);
+    } else {
+      newEntries[index][field] = value;
+    }
+    setEntries(newEntries);
+  };
 
   return (
     <>
     <div className="grid grid-cols-2 gap-2 items-center">
       <span>Intervalo</span>
-      <input type="number" min={10} step={10} className="rounded-md bg-white py-1.5 pr-2 pl-3 border border-neutral-300 appearance-none" placeholder="10...20...30..." />
+      <input type="number" min={10} step={10} className="rounded-md bg-white py-1.5 pr-2 pl-3 border border-neutral-300" placeholder="10...20...30..." />
     </div>
     <p className="text-xs font-medium text-neutral-600">O intervalo define o saldo de quantidade que o cliente poderá personalizar caso queira uma quantidade fora do padrão. O valor final será calculado com base no padrão mais aproximado que o cliente definir.</p>
-    <button className="flex items-center gap-2 justify-center text-neutral-600">
-      <span>Adicionar valor</span>
+
+    <div className="grid grid-cols-2 gap-2 my-2">
+    {entries.map((entry, index) => (
+      <div key={index} className="grid gap-2 border-2 border-neutral-200 rounded-2xl p-2">
+        <input type="text"
+        placeholder="Quantidade"
+        value={entry.quantity}
+        onChange={(e) => updateEntry(index, "quantity", e.target.value)}
+        className="rounded-md bg-white py-1.5 pr-2 pl-3 border border-neutral-300" />
+        
+        <input type="text"
+        placeholder="R$ 0,00"
+        value={entry.price}
+        onChange={(e) => updateEntry(index, "price", e.target.value)}
+        className="rounded-md bg-white py-1.5 pr-2 pl-3 border border-neutral-300" />
+      </div>
+    ))}
+    </div>
+
+    <button
+      onClick={addEntry}
+      className="flex items-center gap-2 justify-center text-neutral-600">
+      <span>Adicionar 2 valores</span>
       <span className="w-7 flex items-center justify-center rounded-full border border-neutral-400 aspect-square"><FontAwesomeIcon icon={faPlus} /></span>
     </button>
+
+    <pre className="mt-4 p-2 border border-gray-300 rounded bg-gray-100">
+      {JSON.stringify(entries, null, 2)}
+    </pre>
     </>
   );
 }
