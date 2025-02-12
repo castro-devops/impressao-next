@@ -1,7 +1,7 @@
 'use client'
 
 import { moneyBRL } from "@/utils/formatMoney";
-import { faClose, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faClose, faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
 import { useEffect, useState } from "react"
@@ -87,6 +87,7 @@ function BaseConfig ({ config, remove, update, configs }: IBaseConfig) {
 
   const returnField = () => {
     if (config.type === 'quantity') return <QuantityConfig />
+    if (config.type === 'size') return <SizeConfig />
   }
 
   return (
@@ -142,14 +143,12 @@ function BaseConfig ({ config, remove, update, configs }: IBaseConfig) {
 
 function QuantityConfig() {
 
-  const [entries, setEntries] = useState<{quantity: string; price: string}[]>([]);
-
+  const [entries, setEntries] = useState<{id: number; quantity: string; price: string}[]>([]);
   const addEntry = () => {
     if (entries.length < 6) {
-      setEntries([...entries, { quantity: "", price: moneyBRL(0) }]);
+      setEntries([...entries, { id: Date.now(), quantity: "", price: moneyBRL(0) }]);
     }
   };
-
   const updateEntry = (index: number, field: "quantity" | "price", value: string) => {
     const newEntries = [...entries];
     if (field == "price") {
@@ -159,6 +158,9 @@ function QuantityConfig() {
     }
     setEntries(newEntries);
   };
+  const removeEntry = (id: number) => {
+    setEntries(entrie => entrie.filter(entry => entry.id !== id));
+  }
 
   return (
     <>
@@ -170,7 +172,7 @@ function QuantityConfig() {
 
     <div className="grid grid-cols-2 gap-2 my-2">
     {entries.map((entry, index) => (
-      <div key={index} className="grid gap-2 border-2 border-neutral-200 rounded-2xl p-2">
+      <div key={index} className="relative grid gap-2 border-2 border-neutral-200 rounded-2xl p-2">
         <input type="text"
         placeholder="Quantidade"
         value={entry.quantity}
@@ -182,6 +184,7 @@ function QuantityConfig() {
         value={entry.price}
         onChange={(e) => updateEntry(index, "price", e.target.value)}
         className="rounded-md bg-white py-1.5 pr-2 pl-3 border border-neutral-300" />
+        <button className="absolute -top-2 -right-2 bg-white shadow-md flex w-fit p-2 rounded-full text-neutral-500 border border-neutral-300 hover:text-red-500 hover:border-red-500 cursor-pointer transition" onClick={() => removeEntry(entry.id)}><FontAwesomeIcon icon={faTrash} /></button>
       </div>
     ))}
     </div>
@@ -189,13 +192,28 @@ function QuantityConfig() {
     <button
       onClick={addEntry}
       className="flex items-center gap-2 justify-center text-neutral-600">
-      <span>Adicionar 2 valores</span>
-      <span className="w-7 flex items-center justify-center rounded-full border border-neutral-400 aspect-square"><FontAwesomeIcon icon={faPlus} /></span>
+      {entries.length < 6 ? (
+        <>
+        <span>Adicionar valor</span>
+        <span className="w-7 flex items-center justify-center rounded-full border border-neutral-400 aspect-square"><FontAwesomeIcon icon={faPlus} /></span>
+        </>
+        ) : (
+        <>
+        </>
+      )}
     </button>
 
-    <pre className="mt-4 p-2 border border-gray-300 rounded bg-gray-100">
+    {/* <pre className="mt-4 p-2 border border-gray-300 rounded bg-gray-100">
       {JSON.stringify(entries, null, 2)}
-    </pre>
+    </pre> */}
     </>
   );
+}
+
+function SizeConfig() {
+  return (
+    <>
+    <h1>Olá mundo</h1>
+    </>
+  )
 }
