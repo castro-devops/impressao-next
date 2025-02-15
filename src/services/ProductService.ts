@@ -11,13 +11,13 @@ interface IProduct {
      quantity    : number,
 }
 
-export function createProduct(data: IProduct) {
-     return post<IProduct>(BASE_URL, {
-      body: JSON.stringify(data)
-     });
+export async function createProduct(data: IProduct) {
+  const response = await post<IProduct>(BASE_URL, {
+    body: JSON.stringify(data)
+  });
+  return response;
 }
 
 export function deleteProduct(slug: string): Promise<{ message: string }> {
-     console.log(slug);
      return del<{ message: string }>(`${BASE_URL}${slug != '' ? `?slug=${slug}` : ''}`);
 }

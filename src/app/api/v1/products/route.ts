@@ -18,7 +18,7 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const { name, description, category, price, quantity, imgs_id } = await request.json();
-        const slug = slugify(name, { strict: true, lower: true });
+        const slug = slugify(name, { strict: true, lower: true }) + "-" + Math.random().toString(36).slice(2, 11);
 
         // 🔹 Validação manual para garantir que todos os campos necessários estão preenchidos
         if (!name || !category || price === undefined || quantity === undefined) {

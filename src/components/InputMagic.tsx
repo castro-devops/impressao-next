@@ -30,10 +30,6 @@ export function InputMagic({
     onChange,
 }: TInputMagic) {
 
-  useEffect(() => {
-    console.log(value);
-  }, [value])
-
     if (!edit) {
         if (type === "money") {
             return <p className="text-4xl leading-none">{String(value)}</p>;

@@ -7,11 +7,13 @@ const BASE_URL_SEND_PHOTO = '/api/v1/cloud/sendPhoto';
 //   return post<string>(BASE_URL_SEND_MESSAGE, { message: data });
 // }
 
-export function sendPhoto(formData: FormData) {
-  return post(BASE_URL_SEND_PHOTO, {
+export async function sendPhoto(formData: FormData) {
+  const result = await post(BASE_URL_SEND_PHOTO, {
     headers: {
-      'Content-Type': 'multipart/form-data'
+      
     },
     body: formData
   });
+  return result;
 }
+

@@ -16,7 +16,7 @@ export function useCreateCategory() {
 
           try {
                const response = await createCategory({ label: label });
-               console.log(response);
+               console.log('categorias', response);
                setData(response);
           } catch (error) {
                setError('Erro ao criar uma nova categoria.');

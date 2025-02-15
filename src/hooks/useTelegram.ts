@@ -46,22 +46,15 @@ export function useSendPhoto() {
       formData.append('photos', photos[i]);
     }
 
+    // for (const pair of formData.entries()) {
+    //   console.log(pair[0], pair[1]); // Deve exibir os arquivos
+    // }
+
     try {
-      const response = await fetch('/api/v1/cloud/sendPhoto', {
-        method: 'POST',
-        body: formData, // multipart/form-data será automaticamente tratado
-      });
-      if (!response.ok) {
-        const errorMessage = await response.text();
-        throw new Error(errorMessage || "Erro ao enviar foto.");
-      }
-
-      const result = await response.json();
-      return result;
-
+      const response = await sendPhoto(formData);
+      return response;
     } catch (error: any) {
-      const errorMessage = error instanceof Response ? await error.text() : "Erro ao enviar a foto.";
-      setError({ message: errorMessage, status: 500 });
+      setError({ message: "Erro ao enviar a foto.", status: 500 });
       return error;
     } finally {
       setIsLoading(false);

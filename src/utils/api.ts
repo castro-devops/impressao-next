@@ -29,10 +29,12 @@ export async function get<T>(url: string, headers?: Record<string, string>) {
 }
 
 export async function post<T>(url: string, options: { headers?: Record< string, string>, body: BodyInit}) {
-  return await apiFetch<T>(url, {
+  console.log('options:', options);
+  const response = await apiFetch<T>(url, {
     method: 'POST',
     ...options
   });
+  return response;
 }
 
 export async function put<T>(url: string, options: { headers?: Record<string, string>, body: BodyInit}) {
