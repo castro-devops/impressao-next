@@ -77,6 +77,7 @@ export function Product({
         quantity   : Number(store.product.quantity),
         price      : moneyToNumber(store.product.price),
         category   : store.product.category,
+        configs    : store.product.configs,
       }, store.product.photos as FileList);
       
       if (response) {
@@ -95,7 +96,6 @@ export function Product({
 
   return (
     <div className="w-auto md:w-full max-w-[1224px] flex flex-col gap-2">
-      {console.log(store.product)}
       {/* Evento de Loading */}
       {loading && (
         <Toast />

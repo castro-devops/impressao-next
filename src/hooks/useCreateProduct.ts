@@ -1,6 +1,7 @@
 import { createProduct } from "@/services/ProductService";
 import { useEffect, useState } from "react";
 import { useSendPhoto } from "./useTelegram";
+import { createConfig } from "@/services/ProductConfigService";
 
 interface IProduct {
     name        : string;
@@ -9,6 +10,19 @@ interface IProduct {
     price       : number;
     imgs_id     : string;
     quantity    : number;
+    configs?    : any[];
+}
+
+interface IProductConfig {
+  productId: string;
+  schema   : any;
+}
+
+interface IProductResponse extends IProduct {
+  id?: string,
+}
+interface IProductWithConfig extends IProductResponse {
+  config?: IProductConfig | string;
 }
 
 export function useCreateProduct() {
@@ -36,10 +50,26 @@ export function useCreateProduct() {
         imgs_id: JSON.stringify(groupPhotos),
       }
 
-      const response = await createProduct(finishProduct);
-      console.log(response);
-      setData(response);
-      return response;
+      const response: IProductResponse = await createProduct(finishProduct);
+
+      if (!response) {
+        setError({ message: "Erro ao criar um novo produto.", status: 500 });
+        return null;
+      }
+
+      let finalResponse: IProductWithConfig = response;
+
+      if (productData.configs) {
+        const configResponse = await createConfig(response.id!, productData.configs);
+        finalResponse = {
+          ...response,
+          config: configResponse
+        }
+      }
+
+      setData(finalResponse);
+      return finalResponse;
+
     } catch (error) {
         setError({ message: "Erro ao criar um novo produto.", status: 500 });
         return null;

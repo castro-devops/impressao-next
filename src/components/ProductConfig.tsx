@@ -22,7 +22,7 @@ const units = [
 interface IBaseConfig {
   config : {id: number, type?: string},
   remove : (id:number) => void,
-  update : (id: number, type: string) => void,
+  update : (id: number, type: 'quantity' | 'size' | 'custom') => void,
   configs: {id: number, type?: string}[],
 }
 
@@ -36,31 +36,25 @@ export default function ProductConfig() {
   // Valida e adiciona caso passe na validação uma nova configuração em configs
   const addConfig = () => {
     const validType = types.filter((type): type is {label: string; value: 'quantity' | 'size' | 'custom' } => {
-      if (type.value === 'quantity' && configs.some(c => c.type === 'quantity')) return false;
-      if (type.value === 'size' && configs.some(c => c.type === 'size')) return false;
-      if (configs.length === 6) return false;
+      if (type.value === 'quantity' && store.product.configs.some(c => c.type === 'quantity')) return false;
+      if (type.value === 'size' && store.product.configs.some(c => c.type === 'size')) return false;
+      if (store.product.configs.length === 6) return false;
 
       return true;
     });
 
     if (validType.length === 0) return;
     const newId = Date.now();
-    setConfigs(config => [{id: newId, type: validType[0].value}, ...config]);
     store.setConfig({id: newId, type: validType[0].value, label: validType[0].label});
   }
 
   // Atualiza um tipo de configuração previamente criado
-  const updateConfig = (id: number, type: string) => {
-    setConfigs(prev =>
-      prev.map(config =>
-        config.id === id ? {...config, type} : config
-      )
-    );
+  const updateConfig = (id: number, type: 'quantity' | 'size' | 'custom') => {
+    store.setConfig({id: id, type: type, label: types.find(t => t.value === type)?.label});
   }
 
   // Remove uma configuração pelo id da lista de configurações
   const removeConfig = (id: number) => {
-    setConfigs(prev => prev.filter(config => config.id !== id));
     store.rmConfig(id);
   }
 
@@ -73,7 +67,6 @@ export default function ProductConfig() {
         config={config}
         remove={removeConfig}
         update={updateConfig}
-        configs={configs}
         />
       ))}
       <div className="rounded-2xl text-neutral-800 border-2 border-dashed border-neutral-300 hover:border-neutral-500 p-5 flex flex-col gap-1 cursor-pointer transition"
@@ -87,10 +80,12 @@ export default function ProductConfig() {
   );
 }
 
-function BaseConfig ({ config, remove, update, configs }: IBaseConfig) {
+function BaseConfig ({ config, remove, update }: IBaseConfig) {
+
+  const store = useProduct();
 
   const returnField = () => {
-    if (config.type === 'quantity') return <QuantityConfig />
+    if (config.type === 'quantity') return <QuantityConfig config={config} />
     if (config.type === 'size') return <SizeConfig />
   }
 
@@ -108,7 +103,7 @@ function BaseConfig ({ config, remove, update, configs }: IBaseConfig) {
 
       <div className="grid grid-cols-2 gap-2 items-center">
         <span className="leading-none flex-1">Tipo de campo</span>
-        <Listbox value={config.type} onChange={value => update(config.id, value || 'custom')}>
+        <Listbox value={config.type} onChange={(value: 'quantity' | 'size' | 'custom') => update(config.id, value || 'custom')}>
           <div className="relative mt-2 flex-1">
             <ListboxButton className="grid w-full border border-neutral-300 cursor-pointer grid-cols-1 rounded-md bg-white py-1.5 pr-2 pl-3 text-left text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
               <span className="col-start-1 row-start-1 flex items-center gap-3 pr-6">
@@ -120,7 +115,7 @@ function BaseConfig ({ config, remove, update, configs }: IBaseConfig) {
                 transition
                 className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base ring-1 shadow-lg ring-black/5 focus:outline-hidden data-leave:transition data-leave:duration-100 data-leave:ease-in data-closed:data-leave:opacity-0 sm:text-sm"
               >
-                {types.filter(t => !configs.some(c => c.type === t.value)).map(item => (
+                {types.filter(t => !store.product.configs.some(c => c.type === t.value)).map(item => (
                   <ListboxOption
                     key={item.value}
                     value={item.value}
@@ -141,31 +136,48 @@ function BaseConfig ({ config, remove, update, configs }: IBaseConfig) {
       </div>
 
       {returnField()}
+
     </div>
   );
 }
 
-function QuantityConfig() {
+function QuantityConfig({ config }: {config: ProductConfig}) {
 
-  const [entries, setEntries] = useState<{id: number; quantity: string; price: string}[]>([]);
+  const store = useProduct();
+  const [entries, setEntries] = useState<{ id: number; quantity: string; price: string }[]>(() => {
+    try {
+      return JSON.parse(config.config) || [];
+    } catch {
+      return [];
+    }
+  });
 
   const addEntry = () => {
-    if (entries.length < 6) 
-    setEntries([...entries, { id: Date.now(), quantity: "", price: moneyBRL(0) }]);
-  }
+    if (entries.length < 6) {
+      setEntries((prevEntries) => {
+        const newEntries = [...prevEntries, { id: Date.now(), quantity: "", price: moneyBRL(0) }];
+        store.setConfig({ id: config.id, config: JSON.stringify(newEntries) });
+        return newEntries;
+      });
+    }
+  };
 
   const updateEntry = (index: number, field: "quantity" | "price", value: string) => {
-    const newEntries = [...entries];
-    if (field == "price") {
-      newEntries[index][field] = moneyBRL(value);
-    } else {
-      newEntries[index][field] = value;
-    }
-    setEntries(newEntries);
+    setEntries((prevEntries) => {
+      const newEntries = [...prevEntries];
+      newEntries[index][field] = field === "price" ? moneyBRL(value) : value;
+      store.setConfig({ id: config.id, config: JSON.stringify(newEntries) });
+      return newEntries;
+    });
   };
+
   const removeEntry = (id: number) => {
-    setEntries(entrie => entrie.filter(entry => entry.id !== id));
-  }
+    setEntries((prevEntries) => {
+      const newEntries = prevEntries.filter(entry => entry.id !== id);
+      store.setConfig({ id: config.id, config: JSON.stringify(newEntries) });
+      return newEntries;
+    });
+  };
 
   return (
     <>
@@ -215,6 +227,10 @@ function QuantityConfig() {
     </>
   );
 }
+
+
+
+
 
 function SizeConfig() {
 

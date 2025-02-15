@@ -9,7 +9,7 @@ const initialProduct: Product = {
   photosSrcs : [],
   name       : '',
   description: '',
-  quantity   : 0,
+  quantity   : 1,
   price      : moneyBRL(0),
   category   : '',
   configs    : [],
@@ -40,19 +40,27 @@ const useProduct = create(
         set({ product: initialProduct });
       },
 
-      setConfig: (value: Partial<ProductConfig>) =>{
+      setConfig: (value: Partial<ProductConfig>) => {
         
         set((state) => ({
           product: {
             ...state.product,
-            configs: [...state.product.configs, { 
-              id: value.id!,
-              label: value.label || '',
-              type: value.type || 'custom',
-              config: value.config || '',
-             }],
+            configs: state.product.configs.some((config) => config.id === value.id)
+              ? state.product.configs.map(config => 
+                config.id === value.id ? { ...config, ...value } : config
+              )
+              : [...state.product.configs,
+                {
+                  id: value.id!,
+                  label: value.label || '',
+                  type: value.type || 'custom',
+                  config: value.config || '',
+                },
+              ],
           },
-        }))},
+          }));
+      },
+
 
       rmConfig: (id: number) =>
         set((state) => ({
