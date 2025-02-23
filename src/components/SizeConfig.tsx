@@ -6,6 +6,7 @@ import { faGear, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react"
 import {CheckBox} from "@/components/CheckBox";
+import { ProductConfig } from "@/types/Product";
 
 type TItemsSize = {
   id: number;
@@ -17,54 +18,75 @@ type TItemsSize = {
 
 function SizeConfig() {
   const store = useProduct();
-  const [isChecked, setIsChecked] = useState(store.product.meter_2 || false);
+  const [configs, setConfigs] = useState(store.product.configs.find(config => config.type === 'size'));
+  const [config, setConfig] = useState<TItemsSize[]>(configs ? JSON.parse(configs.config) : []);
 
-  const existingConfig = store.product.configs?.find(c => c.type === 'size');
+  const [isChecked, setIsChecked] = useState<boolean>(configs ? configs.meter_2 || false : false);
 
-  const [configsId] = useState(existingConfig?.id ?? Date.now());
+  useEffect(() => {
+    const newConfigs = store.product.configs.find(config => config.type === 'size');
+    setConfigs(newConfigs);
+    setConfig(newConfigs ? JSON.parse(newConfigs.config) : []);
+    setIsChecked(newConfigs ? newConfigs.meter_2 || false : false);
+  }, [store.product.configs]);
 
-  const [configs, setConfigs] = useState<TItemsSize[]>(() => {
-    return existingConfig ? JSON.parse(existingConfig.config) : [];
-  });
+  const handleSetChecked = () => {
+    const newChecked = !isChecked;
+    setIsChecked(newChecked);
+    store.setConfig({id: configs!.id, config: JSON.stringify(config), meter_2: newChecked});
+  }
+
+  useEffect(() => {
+    
+  })
 
   const handleAddItem = () => {
-    if (configs.length < 3) {
-      store.setConfig({
-        id: configsId,
-        config: JSON.stringify([
-          store.product.configs.find(config => config.id == configsId)?.config,
-          {
-            id: Date.now(),
-            lar: '',
-            alt: '',
-            pmin: '',
-            pmax: ''
-          }
-        ]),
-      });
+    const newConfig = [
+      ...config,
+      {
+        id: Date.now(),
+        lar: '',
+        alt: '',
+        pmin: '',
+        pmax: '',
+      }
+    ];
+    setConfig(newConfig);
+    store.setConfig({id: configs!.id, config: JSON.stringify(newConfig)});
+  }
+  
+  useEffect(() => {
+    const resetConfig: TItemsSize[] = [];
+    setConfig(resetConfig);
+    if (configs) {
+      store.setConfig({id: configs.id, config: JSON.stringify(resetConfig), meter_2: isChecked});
     }
-  };
+  }, [isChecked]);
+  
 
   const handleUpdateItem = (id: number, field: keyof TItemsSize, value: string) => {
-    setConfigs(prevConfigs =>
-      prevConfigs.map(item => (item.id === id ? { ...item, [field]: value } : item))
-    );
-  };
+    setConfig(config.map(item => item.id === id? {...item, [field]: value } : item));
+    store.setConfig({id: configs!.id, config: JSON.stringify(config)});
+  }
 
   const handleRemoveItem = (id: number) => {
-    setConfigs(prevConfigs => prevConfigs.filter(item => item.id !== id));
-  };
+    setConfig(config.filter(item => item.id!== id));
+    store.setConfig({id: configs!.id, config: JSON.stringify(config)});
+  }
+
+  const handleUpdateConfig = (field: keyof ProductConfig, value: string) => {
+    store.setConfig({id: configs!.id, [field]: value });
+  }
 
   return (
     <div className="p-2 border border-neutral-200 text-left rounded-lg flex flex-col gap-4">
-      {console.log(store.product)}
       <div className="flex items-center justify-between">
         <p className="text-lg font-semibold">Tamanho</p>
-        <FontAwesomeIcon className="text-neutral-400 animate-pulse" icon={faGear} />
+        <FontAwesomeIcon onClick={handleAddItem} className="text-neutral-400 animate-pulse" icon={faGear} />
       </div>
       <div className="flex justify-between">
         <label>Venda por m²</label>
-        <CheckBox checked={isChecked} onChange={setIsChecked} />
+        <CheckBox checked={isChecked} onChange={handleSetChecked} />
       </div>
 
       {isChecked ? (
@@ -72,24 +94,24 @@ function SizeConfig() {
         <div className="grid grid-cols-2 gap-2">
           <input
             type="text"
-            value={store.product.configs.find(config => config.id = 1)?.price_min_meter}
+            value={configs?.price_min_meter ?? ''}
             className="p-2 border border-neutral-200 text-left rounded-lg"
             placeholder="Preço m² min."
-            onChange={(e) => store.setConfig({ id: configsId, price_min_meter: moneyBRL(e.target.value) })}
+            onChange={(e) => handleUpdateConfig('price_min_meter', moneyBRL(e.target.value))}
           />
           <input
             type="text"
-            value={store.product.configs.find(config => config.id = 1)?.price_max_meter}
+            value={configs!.price_max_meter}
             className="p-2 border border-neutral-200 text-left rounded-lg"
             placeholder="Preço m² máx."
-            onChange={(e) => store.setConfig({ id: configsId, price_max_meter: moneyBRL(e.target.value) })}
+            onChange={(e) => handleUpdateConfig('price_max_meter', moneyBRL(e.target.value))}
           />
         </div>
-        <SizeItemListMeter list={configs} addItem={handleAddItem} updateItem={handleUpdateItem} removeItem={handleRemoveItem} />
+        <SizeItemListMeter list={config} addItem={handleAddItem} updateItem={handleUpdateItem} removeItem={handleRemoveItem} />
         </>
-      ) : (
-        <SizeItemList list={configs} addItem={handleAddItem} updateItem={handleUpdateItem} removeItem={handleRemoveItem} />
-      )}
+        ) : (
+        <SizeItemList list={config} addItem={handleAddItem} updateItem={handleUpdateItem} removeItem={handleRemoveItem} />
+        )}
     </div>
   );
 }

@@ -225,7 +225,7 @@ export function Product({
             onChange={(e) => handleSetDescription(e.currentTarget.value)}
             id=""></textarea>
           <SizeConfig />
-          {/* <QuantityConfig /> */}
+          <QuantityConfig />
           <div className="flex gap-3">
             <button
               onClick={handleProductSubmit}

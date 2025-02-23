@@ -6,12 +6,13 @@ const initialConfigs: ProductConfig[] = [{
   id: Date.now(),
   label: "Quantidade",
   type: "quantity",
-  config: "",
+  config: "[]",
 }, {
   id: Date.now() + 1,
   label: "Tamanho",
   type: "size",
-  config: "",
+  meter_2: false,
+  config: "[]",
 }]
 
 const initialProduct: Product = {

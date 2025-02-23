@@ -1,3 +1,5 @@
+'use client'
+
 import useProduct from "@/store/useProduct";
 import { faClose, faGear, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -10,63 +12,19 @@ type TQuantity = {
 
 function QuantityConfig() {
   const store = useProduct();
-  const [isChecked, setIsChecked] = useState(store.product.meter_2 || false);
-
-  const existingConfig = store.product.configs?.find(c => c.type === 'quantity');
-
-  const [configsId] = useState(existingConfig?.id ?? Date.now());
-
-  const [list, setList] = useState<TQuantity[]>(() => {
-    return existingConfig ? JSON.parse(existingConfig.config) : [];
-  });
-
-  useEffect(() => {
-    // Filtra a configuração 'quantity'
-    const quantityConfig = store.product.configs?.find(c => c.type === 'quantity');
-    
-    if (quantityConfig) {
-      setList(JSON.parse(quantityConfig.config)); // Carrega a configuração 'quantity' se existir
-    } else {
-      setList([]); // Limpa a configuração caso não exista
-    }
-  }, []);
-
-  useEffect(() => {
-    store.setConfig({
-      id: configsId,
-      label: 'Quantidade',
-      type: 'quantity',
-      config: JSON.stringify(list),
-      meter_2: isChecked
-    });
-  }, [list, isChecked]);
-
-  useEffect(() => {
-    store.setConfig({
-      id: configsId,
-      label: 'Quantidade',
-      type: 'quantity',
-      config: JSON.stringify([]),
-      meter_2: isChecked
-    });
-    setList([]); // Limpar a lista quando o checkbox for desmarcado
-  }, [isChecked]);
+  const [configs, setConfigs] = useState(store.product.configs?.find(c => c.type === 'quantity'));
+  const [list, setList] = useState<TQuantity[]>(configs? JSON.parse(configs.config) : []);
 
   const handleAddQuantity = () => {
-    if (list.length < 6) {
-      setList([...list, { id: Date.now(), quantity: 1 }]);
-    }
-  };
+    const newId = Date.now();
+    const newQuantity = 1;
+    setList([...list, { id: newId, quantity: newQuantity }]);
+    store.setConfig({ id: configs?.id, config: JSON.stringify(list) });
+  }
 
-  const handleUpdateQuantity = (id: number, field: keyof TQuantity, value: string) => {
-    setList(prevList =>
-      prevList.map(item => (item.id === id ? { ...item, [field]: Number(value) } : item))
-    );
-  };
-
-  const removeQuantity = (id: number) => {
-    setList(prevList => prevList.filter(item => item.id !== id));
-  };
+  const removeQuantity = () => {
+    
+  
 
   return (
     <div className="p-2 border border-neutral-200 text-left rounded-lg flex flex-col gap-4">
@@ -101,6 +59,7 @@ function QuantityConfig() {
     </div>
   );
 }
+
 
 function QuantityItem({ index, field, updateField, removeField }: {
   index: number;

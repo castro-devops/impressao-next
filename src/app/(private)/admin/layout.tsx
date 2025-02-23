@@ -13,7 +13,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body
-        className={`relative lg:bg-neutral-50 py-10 h-dvh`}>
+        className={`relative lg:bg-neutral-50 h-dvh`}>
           <div className='relative max-w-[1350px] mx-auto h-[100%] flex flex-col gap-5 p-1'>
             {children}
           </div>

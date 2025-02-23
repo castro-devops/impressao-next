@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ICheckBox {
   checked: boolean;
@@ -8,6 +8,10 @@ interface ICheckBox {
 const CheckBox: React.FC<ICheckBox> = ({checked = false, onChange}) => {
 
   const [isChecked, setIsChecked] = useState(checked);
+
+  useEffect(() => {
+    setIsChecked(checked);
+  }, [checked]);
 
   const handleToggle = () => {
     const newChecked = !isChecked;
