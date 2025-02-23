@@ -15,18 +15,16 @@ type Product = {
   photosSrcs : string[];
   name       : string;
   description: string;
-  quantity   : number;
-  price      : number | string;
   category   : string;
   imgs_id?   : string;
   configs    : ProductConfig[];
-}
+} & Record<string, any>;
 
 type ProductConfig = {
   id    : number;
   label : string;
   type  : 'quantity' | 'size' | 'custom';
   config: string;
-}
+} & Record<string, any>;
 
 export type { ProductState, Product, ProductConfig };

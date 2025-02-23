@@ -1,22 +1,30 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { ProductState, Product, ProductConfig } from '@/types/Product';
-import { moneyBRL } from '@/utils/formatMoney';
+import { moneyBRL } from '@/utils/formatValues';
+
+const initialConfigs: ProductConfig[] = [{
+  id: Date.now(),
+  label: "Quantidade",
+  type: "quantity",
+  config: "",
+}, {
+  id: Date.now() + 1,
+  label: "Tamanho",
+  type: "size",
+  config: "",
+}]
 
 const initialProduct: Product = {
-  id         : 0,
+  id         : Date.now(),
   photos     : null,
   photosSrcs : [],
   name       : '',
   description: '',
-  quantity   : 1,
-  price      : moneyBRL(0),
   category   : '',
-  configs    : [],
+  configs    : initialConfigs,
 };
 
-const useProduct = create(
-  persist<ProductState>(
+const useProduct = create<ProductState>(
     (set) => ({
       editMagic: false,
       product: initialProduct,
@@ -36,10 +44,9 @@ const useProduct = create(
         }),
 
       rmProduct: () => {
-        useProduct.persist.clearStorage();
-        set({ product: initialProduct });
+        set({ product: { ...initialProduct } });
       },
-
+      
       setConfig: (value: Partial<ProductConfig>) => {
         
         set((state) => ({
@@ -61,7 +68,6 @@ const useProduct = create(
           }));
       },
 
-
       rmConfig: (id: number) =>
         set((state) => ({
           product: {
@@ -69,9 +75,7 @@ const useProduct = create(
             configs: state.product.configs.filter((config) => config.id !== id),
           },
         })),
-    }),
-    { name: 'product' }
-  )
+    })
 );
 
 export default useProduct;

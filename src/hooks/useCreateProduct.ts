@@ -7,9 +7,7 @@ interface IProduct {
     name        : string;
     description?: string;
     category    : string;
-    price       : number;
     imgs_id     : string;
-    quantity    : number;
     configs?    : any[];
 }
 

@@ -2,12 +2,11 @@
 import { faEdit } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from '@headlessui/react'
-import { useEffect } from "react";
 
 type TInputMagic = {
      edit       ?: boolean,
      className  ?: string,
-     type       ?: "text" | "select" | "money" | "number" | "quantity" | "checkbox",
+     type       ?: "text" | "select" | "money" | "number" | "quantity" | "textarea" | "checkbox",
      placeholder?: string,
      value      ?: 
           | string
@@ -30,9 +29,35 @@ export function InputMagic({
     onChange,
 }: TInputMagic) {
 
+  const handleInputChange = (e: any) => {
+    const target = e.target;
+    let value = e.target.value;
+
+    value = value.replace(/(\r\n|\r|\n){2,}/g, '\n\n');
+    e.target.value = value;
+
+    if (type === "textarea") {
+      target.style.height = 'auto';
+      target.style.height = `${target.scrollHeight}px`;
+    }
+    onChange?.(e);
+  }
+
+  const getValue = () => {
+    if (typeof value === 'object' && value !== null && 'label' in value) {
+      return value.label;
+    }
+    return value;
+  };
+
     if (!edit) {
         if (type === "money") {
             return <p className="text-4xl leading-none">{String(value)}</p>;
+        }
+        if (type === "textarea") {
+          return <p className="flex flex-col">
+                  <pre className="flex-1 text-sm font-sans text-wrap leading-tight">{String(value)}</pre>
+                </p>
         }
         if (type === "select") {
           if (typeof value === "object" && value !== null && "label" in value) {
@@ -58,6 +83,8 @@ export function InputMagic({
         <div className="relative flex items-center bg-slate-100 rounded-md flex-1 w-full">
             {type === "money" ? (
                <input type="text" className={`w-full outline-none bg-transparent ${className}`} value={String(value)} onChange={onChange} />
+            ) : type === "textarea" ? (
+              <textarea value={getValue()} onChange={handleInputChange} maxLength={500} className={`w-full text-neutral-400 h-auto overflow-hidden resize-none outline-none text-left bg-transparent text-md ${className}`} placeholder="Você pode colocar aqui uma breve descrição do produto"></textarea>
             ) : type === "checkbox" ? (
                 <input
                     type="checkbox"

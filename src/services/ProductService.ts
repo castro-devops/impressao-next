@@ -6,9 +6,7 @@ interface IProduct {
      name        : string,
      description?: string,
      category    : string,
-     price       : number,
      imgs_id     : string,
-     quantity    : number,
 }
 
 export async function createProduct(data: IProduct) {

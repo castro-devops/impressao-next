@@ -25,5 +25,7 @@ export default {
       }
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwind-scrollbar"),
+    require("tailwindcss-animate")],
 } satisfies Config;
