@@ -15,20 +15,38 @@ function QuantityConfig() {
   const [configs, setConfigs] = useState(store.product.configs?.find(c => c.type === 'quantity'));
   const [list, setList] = useState<TQuantity[]>(configs? JSON.parse(configs.config) : []);
 
+  useEffect(() => {
+    const newConfigs = store.product.configs.find(config => config.type === 'quantity');
+    setConfigs(newConfigs);
+    setList(newConfigs ? JSON.parse(newConfigs.config) : []);
+  }, [store.product.configs]);
+
   const handleAddQuantity = () => {
-    const newId = Date.now();
-    const newQuantity = 1;
-    setList([...list, { id: newId, quantity: newQuantity }]);
-    store.setConfig({ id: configs?.id, config: JSON.stringify(list) });
+    const newConfig = [
+      ...list,
+      {
+        id: Date.now(),
+        quantity: 1
+      }
+    ];
+    setList(newConfig);
+    store.setConfig({id: configs!.id, config: JSON.stringify(newConfig)});
   }
 
-  const removeQuantity = () => {
-    
-  
+  const handleUpdateQuantity = (id: number, field: keyof TQuantity, value: string) => {
+    const updatedList = list.map(item => item.id === id ? { ...item, [field]: Number(value) } : item);
+    setList(updatedList);
+    store.setConfig({id: configs!.id, config: JSON.stringify(updatedList)});
+  }
+
+  const removeQuantity = (id: number) => {
+    const newConfig = list.filter(item => item.id !== id);
+    setList(newConfig);
+    store.setConfig({id: configs!.id, config: JSON.stringify(newConfig)});
+  }
 
   return (
     <div className="p-2 border border-neutral-200 text-left rounded-lg flex flex-col gap-4">
-      {console.log(store.product.configs)}
       <div className="flex items-center justify-between">
         <p className="text-lg font-semibold">Quantidade</p>
         <FontAwesomeIcon className="text-neutral-400 animate-pulse" icon={faGear} />

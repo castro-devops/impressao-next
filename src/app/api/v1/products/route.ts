@@ -16,6 +16,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  console.log(request.json());
     try {
         const { name, description, category, price, quantity, imgs_id } = await request.json();
         const slug = slugify(name, { strict: true, lower: true }) + "-" + Math.random().toString(36).slice(2, 11);
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
 
         // 🔹 Criando o produto
         const newProduct = await prisma.product.create({
-            data: { name, slug, description, category, price, quantity, imgs_id },
+            data: { name, slug, description, category, imgs_id },
         });
 
         return NextResponse.json(newProduct, { status: 201 });

@@ -94,6 +94,8 @@ export function Product({
     }
   }, [store.product.photosSrcs.length]);
 
+  const [localDescription, setLocalDescription] = useState<string>(store.product.description);
+
   const replacements = [
     { search: '/*', value: '<b>' },
     { search: '*/', value: '</b>' },
@@ -103,22 +105,29 @@ export function Product({
     { search: '>>', value: '<i class="fa-solid fa-check text-sm"></i>' },
   ];
 
-  const handleSetDescription = (e: React.ChangeEvent<HTMLInputElement> | string) => {
-    let description = typeof e === 'string' ? e : e.target.value; // Verifica se o valor é uma string ou evento
+  const applyReplacements = (text: string, reverse = false) => {
+    return replacements.reduce((acc, { search, value }) => {
+      const from = reverse ? value : search;
+      const to = reverse ? search : value;
+      return acc.replaceAll(from, to);
+    }, text);
+  };
 
-    // Aplica as substituições
-    replacements.forEach(({ search, value }) => {
-      description = description.replaceAll(search, value);
-    });
-
-    // Atualiza o estado da descrição com o valor modificado
-    handleFieldChange(description, 'description');
+  const handleSetDescription = (e: React.ChangeEvent<HTMLTextAreaElement> | string) => {
+    const description = typeof e === 'string' ? e : e.target.value;
+    setLocalDescription(description);
+    store.setProduct(applyReplacements(description), 'description');
   };
 
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement> | string, field: keyof Product) => {
     const valor = typeof e === 'string' ? e : e.target.value;
     store.setProduct(valor, field);
   }
+
+  const handleResetProduct = () => {
+    store.rmProduct();
+    setLocalDescription('');
+  };
 
   const handleProductSubmit = async () => {
     setLoading(true);
@@ -222,6 +231,7 @@ export function Product({
           <textarea
             className={`p-4 border border-neutral-200 text-left rounded-lg resize-none h-60 flex-none`}
             placeholder="Descrição"
+            value={localDescription}
             onChange={(e) => handleSetDescription(e.currentTarget.value)}
             id=""></textarea>
           <SizeConfig />
@@ -233,7 +243,7 @@ export function Product({
                 Criar
             </button>
             <button
-              onClick={() => store.rmProduct()}
+              onClick={handleResetProduct}
               className="flex-1 p-4 bg-yellow-600 hover:bg-yellow-700 rounded-lg shadow-lg hover:shadow-sm font-semibold text-white transition">
                 Limpar
             </button>

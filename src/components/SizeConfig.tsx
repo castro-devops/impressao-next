@@ -36,10 +36,6 @@ function SizeConfig() {
     store.setConfig({id: configs!.id, config: JSON.stringify(config), meter_2: newChecked});
   }
 
-  useEffect(() => {
-    
-  })
-
   const handleAddItem = () => {
     const newConfig = [
       ...config,
@@ -65,13 +61,15 @@ function SizeConfig() {
   
 
   const handleUpdateItem = (id: number, field: keyof TItemsSize, value: string) => {
-    setConfig(config.map(item => item.id === id? {...item, [field]: value } : item));
-    store.setConfig({id: configs!.id, config: JSON.stringify(config)});
+    const updateConfig = config.map(item => item.id === id ? { ...item, [field]: value } : item);
+    setConfig(updateConfig);
+    store.setConfig({id: configs!.id, config: JSON.stringify(updateConfig)});
   }
 
   const handleRemoveItem = (id: number) => {
-    setConfig(config.filter(item => item.id!== id));
-    store.setConfig({id: configs!.id, config: JSON.stringify(config)});
+    const newList = config.filter(item => item.id !== id);
+    setConfig(newList);
+    store.setConfig({id: configs!.id, config: JSON.stringify(newList)});
   }
 
   const handleUpdateConfig = (field: keyof ProductConfig, value: string) => {
