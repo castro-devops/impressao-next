@@ -15,7 +15,7 @@ export default function Novo() {
   const [label, setLabel] = useState('');
   const { isLoading: createLoading, error: createError, data: createData, handleCreateCategory } = useCreateCategory();
   const { isLoading: fetchLoading, error: fetchError, data: fetchData, handleGetCategory } = useGetCategory();
-  const { isLoading: deleteLoading, error: deleteError, handleDiscardCategory } = useDiscardCategory();
+  const { isLoading: deleteLoading, error: deleteError, data: deleteData, handleDiscardCategory } = useDiscardCategory();
 
   const handleSubmit = () => {
     handleCreateCategory(label);
@@ -24,7 +24,7 @@ export default function Novo() {
 
   useEffect(() => {
     handleGetCategory();
-  }, [createData]);
+  }, [createData, deleteData]);
 
   const userLogout = async () => {
     const success = await signOut();
