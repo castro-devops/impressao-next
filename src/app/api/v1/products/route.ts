@@ -16,18 +16,19 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  console.log(request.json());
     try {
         const { name, description, category, price, quantity, imgs_id } = await request.json();
         const slug = slugify(name, { strict: true, lower: true }) + "-" + Math.random().toString(36).slice(2, 11);
 
         // 🔹 Validação manual para garantir que todos os campos necessários estão preenchidos
-        if (!name || !category || price === undefined || quantity === undefined) {
+        if (!name || !category) {
             return NextResponse.json(
-                { error: "Os campos nome, categoria, preço e quantidade são obrigatórios." },
+                { error: "Os campos nome e categoria são obrigatórios." },
                 { status: 400 }
             );
         }
+
+        console.log(name, slug, description, category, imgs_id);
 
         // 🔹 Criando o produto
         const newProduct = await prisma.product.create({

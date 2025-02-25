@@ -16,6 +16,8 @@ import { type Product } from "@/types/Product";
 import { useGetCategory } from "@/hooks/useCreateCategory";
 import { Listbox, ListboxButton, ListboxOption, ListboxOptions, MenuButton } from "@headlessui/react";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import { ViewConfigs } from "./ViewProductConfig";
+import { priceUnit } from "@/hooks/useQuantitySize";
 
 export function Product({
      data,
@@ -23,6 +25,8 @@ export function Product({
 }: { data?: Product, create?: boolean }) {
 
   const store = useProduct();
+
+  const itemFinished = priceUnit();
 
   const { isLoading: loadingCategory, error: errorCategory, data: dataCategory, handleGetCategory } = useGetCategory();
   const { isLoading: loadingCreate, error: errorCreate, data: dataCreate, handleCreateProduct }     = useCreateProduct();
@@ -166,6 +170,8 @@ export function Product({
         throw new Error("Ops, verifique se todos os campos estão preenchidos.");
       }
 
+      console.log(store.product)
+
       const response = await handleCreateProduct({
         name       : store.product.name,
         description: store.product.description,
@@ -176,6 +182,7 @@ export function Product({
       if (response) {
         setError({ message: "Produto criado com sucesso.", type: "success" });
         store.rmProduct();
+        setLocalDescription('');
       } else {
         setError({ message: "Tivemos um erro ao criar o produto.", type: "error" });
         throw new Error("Tivemos um erro ao criar o produto.");
@@ -248,6 +255,13 @@ export function Product({
                 Limpar
             </button>
           </div>
+          <div className="flex">
+            <button
+              onClick={handleResetProduct}
+              className="flex-1 p-4 text-sky-600 border-2 border-sky-600 hover:border-sky-700 rounded-lg shadow-lg hover:shadow-sm font-semibold transition">
+                Ver produtos
+            </button>
+          </div>
         </div>
 
         <div className="bg-white p-4 border-2 border-neutral-100 shadow-lg rounded-lg">
@@ -282,6 +296,7 @@ export function Product({
                 </div>
                 ))}
               </div>
+            <ViewConfigs />
             </div>
 
             <div className="flex flex-col gap-8">
@@ -291,7 +306,7 @@ export function Product({
               </div>
               <div className="flex flex-col gap-2">
                 <p className="text-sm text-neutral-500">100 unidades por</p>
-                <p className="text-4xl font-light">R$ 49,50</p>
+                <p className="text-4xl font-light">{itemFinished?.priceTotal ? moneyBRL(itemFinished.priceTotal) : moneyBRL(0)}</p>
               </div>
               <div>
                 <pre className="whitespace-break-spaces font-sans flex-col gap-2"

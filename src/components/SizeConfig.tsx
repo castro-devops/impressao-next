@@ -4,7 +4,7 @@ import useProduct from "@/store/useProduct";
 import { moneyBRL, numberDecimal } from "@/utils/formatValues";
 import { faGear, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {CheckBox} from "@/components/CheckBox";
 import { ProductConfig } from "@/types/Product";
 
@@ -41,8 +41,8 @@ function SizeConfig() {
       ...config,
       {
         id: Date.now(),
-        lar: '',
-        alt: '',
+        lar: '0,001',
+        alt: '0,001',
         pmin: '',
         pmax: '',
       }
@@ -229,14 +229,14 @@ function SizeItem({ item, updateItem, removeItem }: ISizeItem) {
         <input
           type="text"
           className="p-2 border border-neutral-200 text-left rounded-lg"
-          value={item.pmin}
+          value={ moneyBRL(item.pmin)}
           onChange={e => updateItem(item.id, "pmin", moneyBRL(e.target.value))}
           placeholder="Preço min." 
         />
         <input
           type="text"
           className="p-2 border border-neutral-200 text-left rounded-lg"
-          value={item.pmax}
+          value={moneyBRL(item.pmax)}
           onChange={e => updateItem(item.id, "pmax", moneyBRL(e.target.value))}
           placeholder="Preço máx." 
         />
