@@ -13,7 +13,7 @@ export default function Novo() {
   const router = useRouter();
   const [signOut, loading, error] = useSignOut(auth);
   const [label, setLabel] = useState('');
-  const { isLoading: createLoading, error: createError, handleCreateCategory } = useCreateCategory();
+  const { isLoading: createLoading, error: createError, data: createData, handleCreateCategory } = useCreateCategory();
   const { isLoading: fetchLoading, error: fetchError, data: fetchData, handleGetCategory } = useGetCategory();
   const { isLoading: deleteLoading, error: deleteError, handleDiscardCategory } = useDiscardCategory();
 
@@ -21,6 +21,10 @@ export default function Novo() {
     handleCreateCategory(label);
     setLabel('');
   };
+
+  useEffect(() => {
+    handleGetCategory();
+  }, [createData]);
 
   const userLogout = async () => {
     const success = await signOut();

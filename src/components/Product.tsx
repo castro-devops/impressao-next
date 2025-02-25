@@ -268,6 +268,7 @@ export function Product({
           <p className="py-0.5 font-semibold text-neutral-700">Prévia</p>
           <div className="grid grid-cols-[1fr_300px] gap-3">
             {/* grid de imagems */}
+            <div className="flex flex-col gap-5">
             <div className="relative grid gap-2">
               <div className={`h-[520px] bg-neutral-200 overflow-hidden flex items-center justify-center`}>
                 {store.product.photosSrcs.length > 0 && (
@@ -296,6 +297,7 @@ export function Product({
                 </div>
                 ))}
               </div>
+            </div>
             <ViewConfigs />
             </div>
 
@@ -312,14 +314,12 @@ export function Product({
                 <pre className="whitespace-break-spaces font-sans flex-col gap-2"
                   dangerouslySetInnerHTML={{ __html: store.product.description ?? '' }}
                   />
-                {!store.product.description && (
-                <pre className="whitespace-break-spaces font-sans flex-col gap-2">Este é um espaço reservado para criar uma descrição comercial do seu produto.
+                <pre className="mt-4 whitespace-break-spaces font-sans flex-col gap-2">Este é um espaço reservado para criar uma descrição comercial do seu produto.
                   Aqui, você pode inserir estilos usando HTML ou símbolos, confira abaixo alguns disponíveis.
                   <li>Utilize <strong>/* Texto */</strong> para usar o <strong>negrito.</strong></li>
                   <li>Utilize <strong>~/ Texto /~</strong> para usar o <em>itálico.</em></li>
                   <li>Utilize <strong>&gt;&gt;</strong> para inserir <strong><i className="fa-solid fa-check text-sm"></i></strong></li>
                 </pre>
-                )}
               </div>
             </div>
           </div>
