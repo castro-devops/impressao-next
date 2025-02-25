@@ -305,7 +305,7 @@ export function Product({
                 <p className="text-sm">{dataCategory?.find(data => data.slug === store.product.category)?.label || 'Categoria'}</p>
               </div>
               <div className="flex flex-col gap-2">
-                <p className="text-sm text-neutral-500">100 unidades por</p>
+                <p className="text-sm text-neutral-500">{itemFinished?.quantity ? itemFinished.quantity == 1 ? '1 unidade por' : `${itemFinished.quantity} unidades por` : 'Sem unidade definida' }</p>
                 <p className="text-4xl font-light">{itemFinished?.priceTotal ? moneyBRL(itemFinished.priceTotal) : moneyBRL(0)}</p>
               </div>
               <div>

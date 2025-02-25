@@ -163,7 +163,7 @@ export function ViewConfigs() {
                 ?.config.map((config) => (
                   <div
                     key={config.id}
-                    className="border border-neutral-300 p-2 rounded-xl flex-1"
+                    className="border border-neutral-300 p-4 rounded-xl flex-1"
                   >
                     {config.quantity ? (
                       <SessionQuantity
@@ -254,7 +254,6 @@ function SessionSize({
             ? `${toCentimeter(alt)} cm`
             : `${toMeter(alt)} m`}
         </p>
-        <p>{moneyBRL(min)}</p>
       </div>
       <CheckBox checked={isChecked} onChange={onCheck} onlymark={true} />
     </div>

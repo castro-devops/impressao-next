@@ -2,12 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtDecode } from "jwt-decode";
 
 const publicRoutes: { path: string; access: 'private' | 'public' }[] = [
-     { path: '/', access: 'public' }, // Página pública
      { path: '/admin', access: 'private' }, // Página pública
      { path: '/admin/*', access: 'private' }, // Página pública
 ];
 
-const REDIRECT_DEFAULT = '/';
+const REDIRECT_DEFAULT = '/admin';
 
 export function middleware(request: NextRequest) {
      const path = request.nextUrl.pathname;

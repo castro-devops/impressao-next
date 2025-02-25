@@ -28,7 +28,7 @@ const CheckBox: React.FC<ICheckBox> = ({ checked = false, onChange, onlymark = f
   return (
     <button
       onClick={handleToggle}
-      className={`h-5 w-5 aspect-square border-2 rounded-full hover:border-black ${isChecked ? 'border-8 border-black' : 'border-neutral-400'} transition ${onlymark && checked ? 'cursor-not-allowed opacity-50' : ''}`}
+      className={`h-5 w-5 aspect-square border-2 rounded-full hover:border-black ${isChecked ? 'border-8 border-black' : 'border-neutral-400'} transition ${onlymark && checked ? 'cursor-not-allowed' : ''}`}
     >
     </button>
   );
