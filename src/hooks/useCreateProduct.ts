@@ -92,29 +92,36 @@ interface IProductListResponse {
   total: number;
 }
 
-export function useGetProducts(): {
+export function useGetProducts(): { 
   isLoading: boolean;
   error: { message: string; status: number } | null;
-  data: IProductListResponse | null;
-  handleGetProducts: () => Promise<void>;
+  data: IProduct[] | null; // Alteração aqui
+  handleGetProducts: () => void;
 } {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<{ message: string; status: number } | null>(null);
-  const [data, setData] = useState<IProductListResponse | null>(null);
+  const [data, setData] = useState<IProduct[] | null>(null);
 
   const handleGetProducts = async () => {
-    setIsLoading(true);
-    setError(null);
+  setIsLoading(true);
+  setError(null);
 
     try {
-      const response = await getProducts(); // A resposta esperada é do tipo IProductListResponse
-      setData(response); // Agora o tipo de 'response' está correto
+      const response: IProduct[] = await getProducts();
+      console.log("Resposta de produtos:", response); // Verifique o que está sendo retornado
+      if (response) {
+        setData(response); // Passa apenas o array de produtos para o estado
+      } else {
+        setError({ message: "Produtos não encontrados.", status: 404 });
+      }
     } catch (error) {
+      console.error("Erro ao buscar produtos:", error);
       setError({ message: "Erro ao buscar os produtos.", status: 500 });
     } finally {
       setIsLoading(false);
     }
-  }
+  };
+
 
   return { isLoading, error, data, handleGetProducts };
 }

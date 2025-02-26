@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 
-  const chatId = process.env.TELEGRAM_CHAT_ID;
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+interface TelegramFileResponse {
+  ok: boolean;
+  result: {
+    file_path: string;
+  };
+}
+
+const chatId = process.env.TELEGRAM_CHAT_ID;
+const botToken = process.env.TELEGRAM_BOT_TOKEN;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -17,7 +24,7 @@ export async function GET(request: NextRequest) {
 
 
     const response = await fetch(telegramUrl);
-    const data = await response.json();
+    const data: TelegramFileResponse = await response.json();
 
     if (!data.ok) {
       return NextResponse.json({ error: "Erro ao buscar file_path" }, { status: 500 });

@@ -38,7 +38,7 @@ export default function View() {
 
     const urls: { [key: string]: string } = {};
     const configs: { [key: string]: IProductConfig | null } = {};
-    const promises = allProducts.products.map(async (product: any) => {
+    const promises = allProducts.map(async (product: any) => {
       const fileId = JSON.parse(product.imgs_id)[0];
       const productId = product.id;
 
@@ -96,7 +96,7 @@ export default function View() {
       ) : errorProducts ? (
         <p>Error loading products: {errorProducts.message}</p>
       ) : (
-        allProducts && allProducts.products.map((product: any) => {
+        allProducts && allProducts.map((product: any) => {
           const fileId = JSON.parse(product.imgs_id)[0];
           const productId = product.id;
           const quantity = configs[productId]?.sanitizedConfig?.schema[0]?.config.find((c: any) => c.checked)?.quantity || 0;
@@ -110,12 +110,12 @@ export default function View() {
                   alt={product.name}
                 />
               </div>
-              <div>
+              <div className='flex flex-col flex-1'>
                 <p className='text-lg'>{product.name}</p>
                 <p className='text-sm text-neutral-500'>
                   Categoria {product.category && dataCategory?.find(c => c.slug === product.category)?.label || ''}
                 </p>
-                <pre className="whitespace-break-spaces font-sans flex-col gap-2 flex-1 line-clamp-3"
+                <pre className="whitespace-break-spaces font-sans flex-col gap-2 flex-shrink-0 flex-grow line-clamp-3"
                   dangerouslySetInnerHTML={{ __html: product.description ?? '' }}
                   />
               </div>
