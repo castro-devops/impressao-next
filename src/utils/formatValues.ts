@@ -1,12 +1,11 @@
-function moneyBRL(price: string | number) {
-
+function moneyBRL(price: string | number, decimals: number = 2) {
   // Se for número, assume que já está em reais
   if (typeof price === "number") {
     let formattedValue = new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
     }).format(price);
 
     return formattedValue;
@@ -18,19 +17,18 @@ function moneyBRL(price: string | number) {
   // Se a string estiver vazia, assume 0 centavos
   if (!numericValue) numericValue = "0";
 
-  // Converte para número e divide por 100 para transformar centavos em reais
-  let value = Number(numericValue) / 100;
+  // Converte para número e divide por 1000 para transformar centavos em reais
+  let value = Number(numericValue) / 1000;
 
   let formattedValue = new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
   }).format(value);
+  
   return formattedValue;
 }
-
-
 
 function moneyArrayBRL(price: number) {
   let builder = moneyBRL(price);

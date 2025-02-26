@@ -1,12 +1,37 @@
-import axios from "axios";
 import { NextRequest, NextResponse } from "next/server";
 
   const chatId = process.env.TELEGRAM_CHAT_ID;
   const botToken = process.env.TELEGRAM_BOT_TOKEN;
 
 export async function GET(request: NextRequest) {
-  console.log(request);
-  // const telegramUrl = `https://api.telegram.org/bot${botToken}/${file_id}`;
+  const { searchParams } = new URL(request.url);
+  const file_id = searchParams.get('file_id');
+
+  if (!file_id) {
+    return NextResponse.json({ error: "file_id é obrigatório" }, { status: 400 });
+  }
+
+  try {
+    // 1. Buscar o caminho do arquivo no Telegram
+    const telegramUrl = `https://api.telegram.org/bot${botToken}/getFile?file_id=${file_id}`;
+
+
+    const response = await fetch(telegramUrl);
+    const data = await response.json();
+
+    if (!data.ok) {
+      return NextResponse.json({ error: "Erro ao buscar file_path" }, { status: 500 });
+    }
+
+    const file_path = data.result.file_path;
+
+    // 2. Construir URL final para download
+    const fileUrl = `https://api.telegram.org/file/bot${botToken}/${file_path}`;
+
+    return NextResponse.json({ fileUrl });
+  } catch (error) {
+    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -14,7 +39,6 @@ export async function POST(request: NextRequest) {
   try {
     // Log para verificar o corpo da requisição
     const contentType = request.headers.get('content-type') || '';
-    console.log('Content-Type:', contentType);
 
     // Certifique-se de que a requisição é multipart/form-data
     if (!contentType.includes('multipart/form-data')) {

@@ -1,5 +1,27 @@
-import { sendPhoto } from "@/services/TelegramService";
+import { sendPhoto, getPhoto } from "@/services/TelegramService";
 import { useState } from "react";
+
+export function useGetPhoto() {
+  const [error, setError] = useState<{ message: string; status: number } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  async function handleGetPhoto(file_id: string) {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await getPhoto(file_id);
+      return response;
+    } catch (error: any) {
+      setError({ message: error.message || "Erro ao carregar a foto.", status: 500 });
+      return error;
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  return { handleGetPhoto, error, isLoading };
+}
 
 export function useSendPhoto() {
 

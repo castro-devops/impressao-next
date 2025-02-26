@@ -95,14 +95,14 @@ function SizeConfig() {
             value={configs?.price_min_meter ?? ''}
             className="p-2 border border-neutral-200 text-left rounded-lg"
             placeholder="Preço m² min."
-            onChange={(e) => handleUpdateConfig('price_min_meter', moneyBRL(e.target.value))}
+            onChange={(e) => handleUpdateConfig('price_min_meter', moneyBRL(e.target.value, 3))}
           />
           <input
             type="text"
             value={configs!.price_max_meter}
             className="p-2 border border-neutral-200 text-left rounded-lg"
             placeholder="Preço m² máx."
-            onChange={(e) => handleUpdateConfig('price_max_meter', moneyBRL(e.target.value))}
+            onChange={(e) => handleUpdateConfig('price_max_meter', moneyBRL(e.target.value, 3))}
           />
         </div>
         <SizeItemListMeter list={config} addItem={handleAddItem} updateItem={handleUpdateItem} removeItem={handleRemoveItem} />
@@ -229,15 +229,15 @@ function SizeItem({ item, updateItem, removeItem }: ISizeItem) {
         <input
           type="text"
           className="p-2 border border-neutral-200 text-left rounded-lg"
-          value={ moneyBRL(item.pmin)}
-          onChange={e => updateItem(item.id, "pmin", moneyBRL(e.target.value))}
+          value={ moneyBRL(item.pmin, 3)}
+          onChange={e => updateItem(item.id, "pmin", moneyBRL(e.target.value, 3))}
           placeholder="Preço min." 
         />
         <input
           type="text"
           className="p-2 border border-neutral-200 text-left rounded-lg"
-          value={moneyBRL(item.pmax)}
-          onChange={e => updateItem(item.id, "pmax", moneyBRL(e.target.value))}
+          value={moneyBRL(item.pmax, 3)}
+          onChange={e => updateItem(item.id, "pmax", moneyBRL(e.target.value, 3))}
           placeholder="Preço máx." 
         />
       </div>

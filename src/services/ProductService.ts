@@ -9,6 +9,10 @@ interface IProduct {
      imgs_id     : string,
 }
 
+export async function getProducts(page: number = 1, limit: number = 10, filter: string = '') {
+  return get<{ products: IProduct[], total: number }>(`${BASE_URL}?page=${page}&limit=${limit}${filter != ''? `&filter=${filter}` : ''}`);
+}
+
 export async function createProduct(data: IProduct) {
   const response = await post<IProduct>(BASE_URL, {
     body: JSON.stringify(data)

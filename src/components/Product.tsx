@@ -256,11 +256,11 @@ export function Product({
             </button>
           </div>
           <div className="flex">
-            <button
-              onClick={handleResetProduct}
-              className="flex-1 p-4 text-sky-600 border-2 border-sky-600 hover:border-sky-700 rounded-lg shadow-lg hover:shadow-sm font-semibold transition">
+            <a
+              href="/admin/product/view"
+              className="flex-1 p-4 text-center text-sky-600 border-2 border-sky-600 hover:border-sky-700 rounded-lg shadow-lg hover:shadow-sm font-semibold transition">
                 Ver produtos
-            </button>
+            </a>
           </div>
         </div>
 
@@ -314,11 +314,11 @@ export function Product({
                 <pre className="whitespace-break-spaces font-sans flex-col gap-2"
                   dangerouslySetInnerHTML={{ __html: store.product.description ?? '' }}
                   />
-                <pre className="mt-4 whitespace-break-spaces font-sans flex-col gap-2">Este é um espaço reservado para criar uma descrição comercial do seu produto.
-                  Aqui, você pode inserir estilos usando HTML ou símbolos, confira abaixo alguns disponíveis.
+                <pre className="mt-4 whitespace-break-spaces font-sans flex-col gap-2">
                   <li>Utilize <strong>/* Texto */</strong> para usar o <strong>negrito.</strong></li>
                   <li>Utilize <strong>~/ Texto /~</strong> para usar o <em>itálico.</em></li>
                   <li>Utilize <strong>&gt;&gt;</strong> para inserir <strong><i className="fa-solid fa-check text-sm"></i></strong></li>
+                  <li>Você pode usar tags <b>HTML</b></li>
                 </pre>
               </div>
             </div>

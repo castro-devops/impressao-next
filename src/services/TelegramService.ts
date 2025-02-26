@@ -1,4 +1,4 @@
-import { post } from "@/utils/api";
+import { post, get } from "@/utils/api";
 
 const BASE_URL_SEND_MESSAGE = '/api/v1/cloud/sendMessage';
 const BASE_URL_SEND_PHOTO = '/api/v1/cloud/sendPhoto';
@@ -9,11 +9,17 @@ const BASE_URL_SEND_PHOTO = '/api/v1/cloud/sendPhoto';
 
 export async function sendPhoto(formData: FormData) {
   const result = await post(BASE_URL_SEND_PHOTO, {
-    headers: {
-      
-    },
     body: formData
   });
   return result;
 }
 
+export async function getPhoto(file_id: string) {
+  const result = await get(`${BASE_URL_SEND_PHOTO}?file_id=${file_id}`, {
+      'Content-Type': 'application/json',
+  });
+
+  if (!result!.fileUrl) throw new Error('Erro ao buscar a foto');
+  return result!.fileUrl;
+
+}

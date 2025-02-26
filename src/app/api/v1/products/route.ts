@@ -44,3 +44,23 @@ export async function POST(request: Request) {
         );
     }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    // Pegando o ID do produto a ser deletado da URL ou do corpo da requisição
+    const { searchParams } = new URL(request.url);
+    const slug = searchParams.get("slug"); // Se estiver na query string
+
+    if (!slug) {
+      return NextResponse.json({ error: "Slug não informado" }, { status: 400 });
+    }
+
+    const delProduct = await prisma.product.delete({
+      where: { slug }
+    });
+
+    return NextResponse.json({ message: "Produto deletado com sucesso!", product: delProduct }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ error: "Erro ao deletar o produto" }, { status: 500 });
+  }
+}
