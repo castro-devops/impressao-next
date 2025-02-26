@@ -14,8 +14,12 @@ export async function sendPhoto(formData: FormData) {
   return result;
 }
 
-export async function getPhoto(file_id: string) {
-  const result = await get(`${BASE_URL_SEND_PHOTO}?file_id=${file_id}`, {
+interface TelegramFileResponse {
+  fileUrl: string;
+}
+
+export async function getPhoto(file_id: string): Promise<string> {
+  const result: TelegramFileResponse  = await get(`${BASE_URL_SEND_PHOTO}?file_id=${file_id}`, {
       'Content-Type': 'application/json',
   });
 
