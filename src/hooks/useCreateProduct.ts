@@ -23,14 +23,21 @@ interface IProductWithConfig extends IProductResponse {
   config?: IProductConfig | string;
 }
 
-export function useCreateProduct() {
+interface UseCreateProductReturn {
+  isLoading: boolean;
+  error: { message: string; status: number } | null;
+  data: IProduct[] | IProductWithConfig | null;
+  handleCreateProduct: (productData: Omit<IProduct, 'imgs_id'>, photos: FileList) => Promise<IProductWithConfig | null>;
+}
+
+export function useCreateProduct(): UseCreateProductReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError]         = useState<{ message: string; status: number } | null>(null);
-  const [data, setData]           = useState<IProduct | null>(null);
+  const [data, setData] = useState<IProduct[] | IProductWithConfig | null>(null);
 
   const { handleSendPhoto, error: errorPhoto, isLoading: loadingPhoto } = useSendPhoto();
 
-  const handleCreateProduct = async (productData: Omit<IProduct, 'imgs_id'>, photos: FileList) => {
+  const handleCreateProduct = async (productData: Omit<IProduct, 'imgs_id'>, photos: FileList): Promise<IProductWithConfig | null> => {
     setIsLoading(true);
     setError(null);
 
@@ -39,20 +46,20 @@ export function useCreateProduct() {
 
       if (!savePhotos || !savePhotos.ok) {
         setError({ message: errorPhoto?.message || 'Ops, as fotos não puderam ser salvas, tente novamente', status: 500 });
-        return;
+        return null;
       }
-      const groupPhotos = savePhotos.result.map((group: { photo: {file_id: string}[] }) => { return group.photo[2].file_id })
+      const groupPhotos = savePhotos.result.map((group: { photo: { file_id: string }[] }) => { return group.photo[2].file_id });
 
       const finishProduct: IProduct = {
         ...productData,
         imgs_id: JSON.stringify(groupPhotos),
-      }
+      };
 
       const response: IProductResponse = await createProduct(finishProduct);
 
       if (!response) {
         setError({ message: "Erro ao criar um novo produto.", status: 500 });
-        return null;
+        return null; // Retorno explícito de null
       }
 
       let finalResponse: IProductWithConfig = response;
@@ -61,36 +68,47 @@ export function useCreateProduct() {
         const configResponse = await createConfig(response.id!, productData.configs);
         finalResponse = {
           ...response,
-          config: configResponse
-        }
+          config: configResponse,
+        };
       }
 
       setData(finalResponse);
-      return finalResponse;
+      return finalResponse; // Retorno explícito de IProductWithConfig
 
     } catch (error) {
-        setError({ message: "Erro ao criar um novo produto.", status: 500 });
-        return null;
+      setError({ message: "Erro ao criar um novo produto.", status: 500 });
+      return null; // Retorno explícito de null
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
+
 
   return { isLoading, error, data, handleCreateProduct };
 }
 
-export function useGetProducts() {
+interface IProductListResponse {
+  products: IProduct[];
+  total: number;
+}
+
+export function useGetProducts(): {
+  isLoading: boolean;
+  error: { message: string; status: number } | null;
+  data: IProductListResponse | null;
+  handleGetProducts: () => Promise<void>;
+} {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError]         = useState<{ message: string; status: number } | null>(null);
-  const [data, setData]           = useState<IProduct | null>(null);
+  const [error, setError] = useState<{ message: string; status: number } | null>(null);
+  const [data, setData] = useState<IProductListResponse | null>(null);
 
   const handleGetProducts = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await getProducts();
-      setData(response);
+      const response = await getProducts(); // A resposta esperada é do tipo IProductListResponse
+      setData(response); // Agora o tipo de 'response' está correto
     } catch (error) {
       setError({ message: "Erro ao buscar os produtos.", status: 500 });
     } finally {

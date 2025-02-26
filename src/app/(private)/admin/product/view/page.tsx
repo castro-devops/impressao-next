@@ -13,8 +13,12 @@ import { moneyBRL } from '@/utils/formatValues';
 
 interface IProductConfig {
     productId: string;
-    schema   : any;
+    sanitizedConfig?: {
+      schema: Array<{
+        config: Array<{ checked: boolean; quantity?: number; pmin?: number }>;
+      }>;
     }
+}
 
 export default function View() {
   const router = useRouter();
@@ -34,7 +38,7 @@ export default function View() {
 
     const urls: { [key: string]: string } = {};
     const configs: { [key: string]: IProductConfig | null } = {};
-    const promises = allProducts.map(async (product: any) => {
+    const promises = allProducts.products.map(async (product: any) => {
       const fileId = JSON.parse(product.imgs_id)[0];
       const productId = product.id;
 
@@ -92,11 +96,11 @@ export default function View() {
       ) : errorProducts ? (
         <p>Error loading products: {errorProducts.message}</p>
       ) : (
-        allProducts && allProducts.map((product: any) => {
+        allProducts && allProducts.products.map((product: any) => {
           const fileId = JSON.parse(product.imgs_id)[0];
           const productId = product.id;
-          const quantity = configs[productId]?.sanitizedConfig?.schema[0]?.config.find((c: any) => c.checked)?.quantity || "N/A";
-          const pmin = configs[productId]?.sanitizedConfig?.schema[1]?.config.find((p: any) => p.checked)?.pmin || "N/A";
+          const quantity = configs[productId]?.sanitizedConfig?.schema[0]?.config.find((c: any) => c.checked)?.quantity || 0;
+          const pmin = configs[productId]?.sanitizedConfig?.schema[1]?.config.find((p: any) => p.checked)?.pmin || 0;
           return (
             <div key={product.slug} className="border border-neutral-200 shadow-sm p-2 rounded-lg flex flex-col gap-3">
               <div className='h-48 bg-neutral-200 rounded-md'>
