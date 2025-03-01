@@ -3,8 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Toast from "./toastLoading";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faEye, faI, faImages, faPen, faPlus } from "@fortawesome/free-solid-svg-icons";
-import { Carousel, CarouselContent, CarouselItem } from "./ui/carousel";
+import { faImages } from "@fortawesome/free-solid-svg-icons";
 import { moneyBRL } from "@/utils/formatValues";
 import { useCreateProduct } from "@/hooks/useCreateProduct";
 import FlashMessage from "./flashMessage";
@@ -17,6 +16,8 @@ import { Listbox, ListboxButton, ListboxOption, ListboxOptions, MenuButton } fro
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import { ViewConfigs } from "./ViewProductConfig";
 import { priceUnit } from "@/hooks/useQuantitySize";
+import { useRouter } from "next/navigation";
+import { NextRequest, NextResponse } from "next/server";
 
 export function Product({
      data,
@@ -24,6 +25,7 @@ export function Product({
 }: { data?: Product, create?: boolean }) {
 
   const store = useProduct();
+  const router = useRouter();
 
   const itemFinished = priceUnit();
 
@@ -41,7 +43,13 @@ export function Product({
 
   useEffect(() => {
     handleGetCategory();
-  }, []);
+  }, [router]);
+
+  useEffect(() => {
+    if (!loadingCategory && (!dataCategory || dataCategory.length === 0)) {
+      window.location.href = "/admin/category";
+    }
+  }, [loadingCategory, dataCategory]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState<{message: string, type: "error" | "warning" | "success" | "info"} | false>(false);

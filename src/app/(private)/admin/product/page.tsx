@@ -1,12 +1,10 @@
 'use client';
 
-import { useEffect, useState } from "react";
 import '@fortawesome/fontawesome-svg-core/styles.css';
 import { useSignOut } from 'react-firebase-hooks/auth';
 import { auth } from "@/services/FirebaseConfig";
 import { useRouter } from "next/navigation";
 import { Product } from "@/components/Product";
-import { useCreateProduct } from "@/hooks/useCreateProduct";
 
 export default function Novo() {
 

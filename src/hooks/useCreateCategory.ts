@@ -1,5 +1,5 @@
 import { createCategory, getCategory, deleteCategory } from "@/services/CategoryService";
-import { use, useState } from "react";
+import { useState } from "react";
 
 interface Category {
   label: string;
@@ -29,26 +29,25 @@ export function useCreateCategory() {
 }
 
 export function useGetCategory() {
-     const [isLoading, setIsLoading] = useState(false);
-     const [error, setError] = useState<{ message: string; status: number } | null>(null);
-     const [data, setData] = useState<{label: string, slug: string}[] | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<{ message: string; status: number } | null>(null);
+  const [data, setData] = useState<{label: string, slug: string}[] | null>(null);
 
-     const handleGetCategory = async (label?: string) => {
-          setIsLoading(true);
-          setError(null);
+  const handleGetCategory = async (label?: string) => {
+    setIsLoading(true);
+    setError(null);
 
-          try {
-            const response = await getCategory(label)
-            console.log('response category', response);
-            setData(response);
-          } catch (error) {
-            setError({message: 'Ops, tivemos um problema ao carregar as categorias.', status: 500});
-          } finally {
-            setIsLoading(false);
-          }
-     };
+    try {
+      const response = await getCategory(label);
+      setData(response);
+    } catch (error) {
+      setError({message: 'Ops, tivemos um problema ao carregar as categorias.', status: 500});
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-     return { isLoading, error, data, handleGetCategory };
+  return { isLoading, error, data, handleGetCategory };
 }
 
 export function useDiscardCategory() {
