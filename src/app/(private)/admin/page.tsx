@@ -23,34 +23,36 @@ export default function Admin () {
   error,
   ] = useSignInWithEmailAndPassword(auth);
 
-  const handleLogin = async () => {
-    setLoadingLogin(true);
-      const userCredentials = await signInWithEmailAndPassword(email, password);
-      if (userCredentials?.user) {
+const handleLogin = async () => {
+  setLoadingLogin(true);
+    const userCredentials = await signInWithEmailAndPassword(email, password);
+    if (userCredentials?.user) {
 
-const token = await userCredentials.user.getIdToken();
-  try {
-    const response = await fetch("/api/v1/auth", {
-        method: "POST",
-        headers: {
-              "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token }),
-    })
+  const token = await userCredentials.user.getIdToken();
+    try {
+      const response = await fetch("/api/v1/auth", {
+          method: "POST",
+          headers: {
+                "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ token }),
+      })
 
-    // Verifica se a resposta foi bem-sucedida
-    if (!response.ok) {
-        throw new Error(`Erro ao definir cookie: ${response.statusText}`);
+      // Verifica se a resposta foi bem-sucedida
+      if (!response.ok) {
+          throw new Error(`Erro ao definir cookie: ${response.statusText}`);
+      }
+
+      if (response.ok) {
+        // Se o fetch foi bem-sucedido, faz o redirecionamento
+        router.push('/admin/category');
+      }
+    } catch (error) {
+          // Captura qualquer erro que ocorrer no fetch ou na resposta
+          console.log('Erro no login ou na configuração do cookie:', error);
+    } finally {
+      setLoadingLogin(false);
     }
-
-    // Se o fetch foi bem-sucedido, faz o redirecionamento
-    router.push('/admin/category');
-  } catch (error) {
-        // Captura qualquer erro que ocorrer no fetch ou na resposta
-        console.log('Erro no login ou na configuração do cookie:', error);
-  } finally {
-    setLoadingLogin(false);
-  }
   }
 }
   

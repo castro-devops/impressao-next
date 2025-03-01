@@ -5,7 +5,6 @@ import Toast from "./toastLoading";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faEye, faI, faImages, faPen, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { Carousel, CarouselContent, CarouselItem } from "./ui/carousel";
-import { InputMagic } from "./InputMagic";
 import { moneyBRL } from "@/utils/formatValues";
 import { useCreateProduct } from "@/hooks/useCreateProduct";
 import FlashMessage from "./flashMessage";
@@ -30,6 +29,15 @@ export function Product({
 
   const { isLoading: loadingCategory, error: errorCategory, data: dataCategory, handleGetCategory } = useGetCategory();
   const { isLoading: loadingCreate, error: errorCreate, data: dataCreate, handleCreateProduct }     = useCreateProduct();
+
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const validFields: Record<string, string> = {
+    photos: 'border-red-500',
+    name: 'border-red-500',
+    category: 'border-red-500',
+    description: 'border-red-500',
+  };
 
   useEffect(() => {
     handleGetCategory();
@@ -126,6 +134,12 @@ export function Product({
   const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement> | string, field: keyof Product) => {
     const valor = typeof e === 'string' ? e : e.target.value;
     store.setProduct(valor, field);
+
+    setFieldErrors((prev) => {
+      const updatedErrors = { ...prev };
+      delete updatedErrors[field]; // Remove o campo específico
+      return updatedErrors; // Retorna o novo objeto sem o erro do campo
+    });
   }
 
   const handleResetProduct = () => {
@@ -137,9 +151,22 @@ export function Product({
     setLoading(true);
     
     try {
-      const hasEmptyField = Object.entries(store.product).some(([_, value]) => 
-        value === '' || value === null || value === 0
-      );
+      const fieldErrorsTemp: Record<string, string> = {};
+
+      // Valida cada campo com base no `validFields`
+      Object.keys(validFields).forEach((field) => {
+        if (!store.product[field]) {
+          fieldErrorsTemp[field] = validFields[field]; // Adiciona a classe de borda
+        }
+      });
+      setFieldErrors(fieldErrorsTemp);
+
+      const hasEmptyField = Object.keys(fieldErrorsTemp).length > 0;
+
+      if (hasEmptyField) {
+        setError({ message: "Ops, verifique se todos os campos estão preenchidos.", type: "error" });
+        throw new Error("Ops, verifique se todos os campos estão preenchidos.");
+      }
       
       const isValidConfig = (config: any) => {
         try {
@@ -158,19 +185,10 @@ export function Product({
 
       const hasInvalidConfigs = store.product.configs.some(config => !isValidConfig(config));
 
-      console.log(store.product);
-
-      if (hasEmptyField) {
-        setError({ message: "Ops, verifique se todos os campos estão preenchidos.", type: "error" });
-        throw new Error("Ops, verifique se todos os campos estão preenchidos.");
-      }
-
       if (hasInvalidConfigs) {
         setError({ message: "Ops, preencheu as configurações corretamente?", type: "error" });
         throw new Error("Ops, verifique se todos os campos estão preenchidos.");
       }
-
-      console.log(store.product)
 
       const response = await handleCreateProduct({
         name       : store.product.name,
@@ -205,7 +223,7 @@ export function Product({
       <div className="grid grid-cols-[320px_1fr] gap-5 flex-1 min-h-0">
         <div className="col-span-1 bg-white p-4 border-2 border-neutral-100 shadow-lg rounded-lg flex flex-col gap-3 overflow-y-auto scrollbar-none">
           <p className="text-2xl text-neutral-600 font-medium">Criar produto</p>
-          <label className="px-4 py-7 text-left text-neutral-700 border border-neutral-200 rounded-lg flex flex-col items-center gap-1 cursor-pointer">
+          <label className={`px-4 py-7 text-left text-neutral-700 border ${fieldErrors.photos || 'border-neutral-200'} rounded-lg flex flex-col items-center gap-1 cursor-pointer`}>
             <input
               className="hidden"
               type="file"
@@ -221,10 +239,10 @@ export function Product({
             type="text"
             value={store.product.name}
             onChange={(e)=> handleFieldChange(e, 'name')}
-            className="p-4 border border-neutral-200 text-left rounded-lg"
+            className={`p-4 border ${fieldErrors.name || 'border-neutral-200'} text-left rounded-lg`}
             placeholder="Nome do produto" />
           <Listbox value={store.product.category} onChange={value => handleFieldChange(value, 'category')}>
-            <ListboxButton className={`p-4 border border-neutral-200 text-left rounded-lg`}>
+            <ListboxButton className={`p-4 border ${fieldErrors.category || 'border-neutral-200'} text-left rounded-lg`}>
               <span>{dataCategory?.find(data => data.slug === store.product.category)?.label || 'Categoria'}</span>
             </ListboxButton>
             <ListboxOptions className={`p-1 border border-neutral-200 rounded-lg shadow-md max-h-72 overflow-auto flex-none`}>
@@ -236,7 +254,7 @@ export function Product({
             </ListboxOptions>
           </Listbox>
           <textarea
-            className={`p-4 border border-neutral-200 text-left rounded-lg resize-none h-60 flex-none`}
+            className={`p-4 border ${fieldErrors.description || 'border-neutral-200'} text-left rounded-lg resize-none h-60 flex-none`}
             placeholder="Descrição"
             value={localDescription}
             onChange={(e) => handleSetDescription(e.currentTarget.value)}

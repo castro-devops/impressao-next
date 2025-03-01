@@ -52,7 +52,7 @@ export function priceUnit() {
     if (item.checked) {
       const quantity = item.quantity ?? 0;
       const sizeChecked = parsedConfig.find((p: IParsedConfig) => p.checked);
-      
+
       if (sizeChecked) {
         const pmax = Number(sizeChecked.pmax);
         const pmin = Number(sizeChecked.pmin);

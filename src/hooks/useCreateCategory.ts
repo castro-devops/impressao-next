@@ -54,11 +54,12 @@ export function useGetCategory() {
 export function useDiscardCategory() {
      const [isLoading, setIsLoading] = useState(false);
      const [error, setError] = useState<string | null>(null);
-     const [data, setData] = useState<{label: string, slug: string}[] | null>(null);
+     const [data, setData] = useState<boolean>(false);
 
      const handleDiscardCategory = async (slug: string) => {
           setIsLoading(true);
           setError(null);
+          setData(true);
 
           try {
                const response = await deleteCategory(slug);
@@ -67,7 +68,8 @@ export function useDiscardCategory() {
                setError("Erro ao excluir a categoria");
                console.error(err);
           } finally {
-               setIsLoading(false);
+            setData(false);
+            setIsLoading(false);
           }
      }
 

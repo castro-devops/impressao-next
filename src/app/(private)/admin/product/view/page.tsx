@@ -12,12 +12,12 @@ import { useProductConfig } from '@/hooks/useProductConfig';
 import { moneyBRL } from '@/utils/formatValues';
 
 interface IProductConfig {
-    productId: string;
-    sanitizedConfig?: {
-      schema: Array<{
-        config: Array<{ checked: boolean; quantity?: number; pmin?: number }>;
-      }>;
-    }
+  productId: string;
+  sanitizedConfig?: {
+    schema: Array<{
+      config: Array<{ checked: boolean; quantity?: number; pmin?: number }>;
+    }>;
+  }
 }
 
 export default function View() {

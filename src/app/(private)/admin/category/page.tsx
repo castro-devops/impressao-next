@@ -13,8 +13,8 @@ export default function Novo() {
   const router = useRouter();
   const [signOut, loading, error] = useSignOut(auth);
   const [label, setLabel] = useState('');
-  const { isLoading: createLoading, error: createError, data: createData, handleCreateCategory } = useCreateCategory();
-  const { isLoading: fetchLoading, error: fetchError, data: fetchData, handleGetCategory } = useGetCategory();
+  const { isLoading: createLoading, error: createError, data: createData, handleCreateCategory }  = useCreateCategory();
+  const { isLoading: fetchLoading, error: fetchError, data: fetchData, handleGetCategory }        = useGetCategory();
   const { isLoading: deleteLoading, error: deleteError, data: deleteData, handleDiscardCategory } = useDiscardCategory();
 
   const handleSubmit = () => {
@@ -40,7 +40,7 @@ export default function Novo() {
 
   const handleDeleteCategorie = (slug: string) => {
     handleDiscardCategory(slug);
-    handleGetCategory(label);
+    setLabel('');
   }
 
   return (
