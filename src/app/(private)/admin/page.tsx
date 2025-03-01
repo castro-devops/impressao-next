@@ -70,7 +70,7 @@ const handleLogin = async () => {
   return (
       <div className="h-full flex items-center justify-center">
         {loadingLogin && <Toast />}
-            <div className="px-7 bg-white min-h-96 w-full flex flex-col gap-10">
+            <div className="p-7 bg-white min-h-96 w-full flex flex-col gap-10 rounded-lg shadow-lg">
                 <h1 className="text-3xl">Configurações</h1>
                 <div className="flex flex-col gap-4">
                       <div className="relative flex items-center bg-white border border-neutral-600 rounded-lg shadow-lg text-sm">
@@ -79,7 +79,7 @@ const handleLogin = async () => {
                                 className="p-3 flex-1 bg-transparent outline-none text-lg"
                                 type="text"
                                 value={email}
-                                onChange={e => setEmail(e.target.value)}
+                                onInput={e => setEmail((e.target as HTMLInputElement).value)}
                                 placeholder="usuario@email.com"
                           />
                       </div>
@@ -89,7 +89,7 @@ const handleLogin = async () => {
                                 className="p-3 flex-1 bg-transparent outline-none placeholder:text-2xl text-lg"
                                 type="password"
                                 value={password}
-                                onChange={e => setPassword(e.target.value)}
+                                onInput={e => setPassword((e.target as HTMLInputElement).value)}
                                 placeholder="••••••••"
                           />
                       </div>

@@ -8,6 +8,7 @@ import { faCheck, faTrash, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { useSignOut } from 'react-firebase-hooks/auth';
 import { auth } from "@/services/FirebaseConfig";
 import { useRouter } from "next/navigation";
+import GuidanceButton from '@/components/guidanceVideo';
 
 export default function Novo() {
   const router = useRouter();
@@ -47,10 +48,10 @@ export default function Novo() {
     <div className="relative h-full p-4 flex flex-col gap-5">
       {/* Barra de navegação */}
       <div className="relative bg-white flex justify-stretch rounded-lg shadow-sm border border-neutral-100 text-center">
-        <a href="/" className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500">Shop</a>
-        <a href="/admin/product" className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500">Produtos</a>
-        <a href="/admin/category" className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500">Categorias</a>
-        <a onClick={userLogout} className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500">Sair</a>
+        {/* <a href="/" className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500 cursor-pointer">Shop</a> */}
+        <a href="/admin/product" className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500 cursor-pointer">Produtos</a>
+        <a href="/admin/category" className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500 cursor-pointer">Categorias</a>
+        <a onClick={userLogout} className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500 cursor-pointer">Sair</a>
       </div>
 
       {/* Input e Botão de Criar Categoria */}
@@ -119,6 +120,8 @@ export default function Novo() {
 
       {/* Erro ao excluir categoria */}
       {deleteError && <p className="text-red-500">{deleteError}</p>}
+
+      <GuidanceButton />
     </div>
   );
 }
