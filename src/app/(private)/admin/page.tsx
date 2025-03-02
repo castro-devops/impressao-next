@@ -68,7 +68,7 @@ const handleLogin = async () => {
       }
 
       // Se o fetch foi bem-sucedido, faz o redirecionamento
-      router.push('/admin/category');
+      window.location.href = '/admin/category';
     } catch (error) {
       // Captura qualquer erro que ocorrer no fetch ou na resposta
       setErrorGlobal({
