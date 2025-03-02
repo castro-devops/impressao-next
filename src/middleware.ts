@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtDecode } from "jwt-decode";
 
 const publicRoutes: { path: string; access: 'private' | 'public' | 'blocked' }[] = [
-  { path: '/admin', access: 'private' },
-  { path: '/admin/*', access: 'private' },
+  { path: '/admin', access: 'public' },
+  { path: '/admin/product', access: 'private' },
+  { path: '/admin/category', access: 'private' },
   { path: '/', access: 'blocked' }
 ];
 
@@ -13,13 +14,10 @@ export function middleware(request: NextRequest) {
   const today = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
   const targetDate = '2025-03-02'; // Data específica
 
-  console.log('Middleware start'); // Log inicial
-
   const path = request.nextUrl.pathname;
-  const publicRoute = publicRoutes.find(route => path.startsWith(route.path));
+  console.log(path);
+  const publicRoute = publicRoutes.find(route => path == route.path);
   const token = request.cookies.get("token")?.value?.toString();
-
-  console.log(`Request path: ${path}`); // Log do caminho da requisição
 
   let decoded = { exp: 0 };
   if (token) {
@@ -33,7 +31,6 @@ export function middleware(request: NextRequest) {
 
   // Se for uma rota bloqueada
   if (publicRoute?.access === 'blocked') {
-    console.log('Blocked route accessed');
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = REDIRECT_DEFAULT;
     return NextResponse.redirect(redirectUrl);
@@ -44,11 +41,11 @@ export function middleware(request: NextRequest) {
     const response = NextResponse.next();
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     console.log('Cache-Control set to no-store');
-    return response;
   }
 
   // Se a rota for pública e não houver token, permite o acesso
   if (!token && publicRoute?.access === 'public') {
+    console.log(publicRoute);
     console.log('Public route and no token, access granted');
     return NextResponse.next();
   }
