@@ -1,70 +1,85 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtDecode } from "jwt-decode";
 
-const publicRoutes: { path: string; access: 'private' | 'public' }[] = [
-  { path: '/admin', access: 'private' }, // Página pública
-  { path: '/admin/*', access: 'private' }, // Página pública
+const publicRoutes: { path: string; access: 'private' | 'public' | 'blocked' }[] = [
+  { path: '/admin', access: 'private' },
+  { path: '/admin/*', access: 'private' },
+  { path: '/', access: 'blocked' }
 ];
 
 const REDIRECT_DEFAULT = '/admin';
 
 export function middleware(request: NextRequest) {
   const today = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
-  const targetDate = '2025-03-02'; // A data específica que você deseja
+  const targetDate = '2025-03-02'; // Data específica
 
-  // Se a data de hoje for a mesma que o targetDate, forçar o cache 'no-store'
-  if (today === targetDate) {
-    const response = NextResponse.next();
-    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    return response;
-  }
+  console.log('Middleware start'); // Log inicial
 
   const path = request.nextUrl.pathname;
-  const publicRoute = publicRoutes.find(route => route.path === path);
-  const token = request.cookies.get("token")?.value.toString();
+  const publicRoute = publicRoutes.find(route => path.startsWith(route.path));
+  const token = request.cookies.get("token")?.value?.toString();
 
-  let decoded = {
-    exp: 0,
-  };
+  console.log(`Request path: ${path}`); // Log do caminho da requisição
+
+  let decoded = { exp: 0 };
   if (token) {
-    decoded = jwtDecode(token);
+    try {
+      decoded = jwtDecode(token);  // Tente decodificar o token apenas se existir
+      console.log('Token decoded:', decoded);
+    } catch (error) {
+      console.error('Erro ao decodificar token:', error);
+    }
   }
 
-  // Se for uma rota pública, permite o acesso
-  if (!token && publicRoute) {
-    return NextResponse.next();
-  }
-
-  if (!token && !publicRoute) {
+  // Se for uma rota bloqueada
+  if (publicRoute?.access === 'blocked') {
+    console.log('Blocked route accessed');
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = REDIRECT_DEFAULT;
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (token && publicRoute && publicRoute.access === 'private') {
+  // Se a data de hoje for igual à targetDate, forçar o cache 'no-store'
+  if (today === targetDate) {
+    const response = NextResponse.next();
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    console.log('Cache-Control set to no-store');
+    return response;
+  }
+
+  // Se a rota for pública e não houver token, permite o acesso
+  if (!token && publicRoute?.access === 'public') {
+    console.log('Public route and no token, access granted');
+    return NextResponse.next();
+  }
+
+  // Se não houver token e a rota for privada, redireciona
+  if (!token && publicRoute?.access === 'private') {
+    console.log('Private route and no token, redirecting');
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = REDIRECT_DEFAULT;
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  // Se o token estiver presente e a rota for privada, verifica a expiração
+  const currentTime = Date.now() / 1000;
+  if (token && publicRoute?.access === 'private' && currentTime > decoded.exp) {
+    console.log('Token expired, redirecting');
+    const response = NextResponse.redirect(REDIRECT_DEFAULT);
+    response.cookies.delete('token');  // Deleta o cookie 'token' caso expirado
+    return response;
+  }
+
+  // Se o token estiver presente e a rota for pública e não privada, redireciona para /admin/category
+  if (token && publicRoute?.access === 'public') {
+    console.log('Token present and public route, redirecting to /admin/category');
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = '/admin/category';
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (token && !publicRoute) {
-    const currentTime = Date.now() / 1000;
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = '/admin';
-    try {
-      if (currentTime > decoded.exp!) {
-        const response = NextResponse.redirect(redirectUrl);
-        response.cookies.delete('token'); // Deleta o cookie 'token'
-        return response;
-      }
-    } catch (error) {
-          console.error('Erro ao verificar o token:', error);
-    }
-    // Se a chave estiver correta, permite o acesso
-    return NextResponse.next();
-  }
-
-  // Se a chave estiver correta, permite o acesso
+  // Caso todas as verificações passem, continua o processo
+  console.log('Middleware passes, continuing');
   return NextResponse.next();
 }
 
