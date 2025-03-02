@@ -2,59 +2,70 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtDecode } from "jwt-decode";
 
 const publicRoutes: { path: string; access: 'private' | 'public' }[] = [
-     { path: '/admin', access: 'private' }, // Página pública
-     { path: '/admin/*', access: 'private' }, // Página pública
+  { path: '/admin', access: 'private' }, // Página pública
+  { path: '/admin/*', access: 'private' }, // Página pública
 ];
 
 const REDIRECT_DEFAULT = '/admin';
 
 export function middleware(request: NextRequest) {
-     const path = request.nextUrl.pathname;
-     const publicRoute = publicRoutes.find(route => route.path === path);
-     const token = request.cookies.get("token")?.value.toString();
-     let decoded = {
-          exp: 0,
-     };
-     if (token) {
-          decoded = jwtDecode(token);
-     }
+  const today = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+  const targetDate = '2025-03-02'; // A data específica que você deseja
 
-     // Se for uma rota pública, permite o acesso
-     if (!token && publicRoute) {
-          return NextResponse.next();
-     }
+  // Se a data de hoje for a mesma que o targetDate, forçar o cache 'no-store'
+  if (today === targetDate) {
+    const response = NextResponse.next();
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    return response;
+  }
 
-     if (!token && !publicRoute) {
-          const redirectUrl = request.nextUrl.clone();
-          redirectUrl.pathname = REDIRECT_DEFAULT;
-          return NextResponse.redirect(redirectUrl);
-     }
+  const path = request.nextUrl.pathname;
+  const publicRoute = publicRoutes.find(route => route.path === path);
+  const token = request.cookies.get("token")?.value.toString();
 
-     if (token && publicRoute && publicRoute.access === 'private') {
-          const redirectUrl = request.nextUrl.clone();
-          redirectUrl.pathname = '/admin/category';
-          return NextResponse.redirect(redirectUrl);
-     }
+  let decoded = {
+    exp: 0,
+  };
+  if (token) {
+    decoded = jwtDecode(token);
+  }
 
-     if (token && !publicRoute) {
-          const currentTime = Date.now() / 1000;
-          const redirectUrl = request.nextUrl.clone();
-          redirectUrl.pathname = '/admin';
-          try {
-               if (currentTime > decoded.exp!) {
-                    const response = NextResponse.redirect(redirectUrl);
-                    response.cookies.delete('token'); // Deleta o cookie 'token'
-                    return response;
-               }
-          } catch (error) {
-               console.error('Erro ao verificar o token:', error);
-          }
-          // Se a chave estiver correta, permite o acesso
-          return NextResponse.next();
-     }
+  // Se for uma rota pública, permite o acesso
+  if (!token && publicRoute) {
+    return NextResponse.next();
+  }
 
-     // Se a chave estiver correta, permite o acesso
-     return NextResponse.next();
+  if (!token && !publicRoute) {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = REDIRECT_DEFAULT;
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  if (token && publicRoute && publicRoute.access === 'private') {
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = '/admin/category';
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  if (token && !publicRoute) {
+    const currentTime = Date.now() / 1000;
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = '/admin';
+    try {
+      if (currentTime > decoded.exp!) {
+        const response = NextResponse.redirect(redirectUrl);
+        response.cookies.delete('token'); // Deleta o cookie 'token'
+        return response;
+      }
+    } catch (error) {
+          console.error('Erro ao verificar o token:', error);
+    }
+    // Se a chave estiver correta, permite o acesso
+    return NextResponse.next();
+  }
+
+  // Se a chave estiver correta, permite o acesso
+  return NextResponse.next();
 }
 
 // Configuração para evitar que o middleware atue sobre APIs e arquivos estáticos

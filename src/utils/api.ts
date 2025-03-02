@@ -1,5 +1,3 @@
-import { NextResponse } from "next/server";
-
 export async function apiFetch<T>(url: string, options: RequestInit): Promise<T> {
   try {
     const response = await fetch(url, {

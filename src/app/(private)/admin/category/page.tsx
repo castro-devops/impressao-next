@@ -9,14 +9,33 @@ import { useSignOut } from 'react-firebase-hooks/auth';
 import { auth } from "@/services/FirebaseConfig";
 import { useRouter } from "next/navigation";
 import GuidanceButton from '@/components/guidanceVideo';
+import FlashMessage from "@/components/flashMessage";
 
 export default function Novo() {
   const router = useRouter();
-  const [signOut, loading, error] = useSignOut(auth);
+  const [signOut] = useSignOut(auth);
   const [label, setLabel] = useState('');
   const { isLoading: createLoading, error: createError, data: createData, handleCreateCategory }  = useCreateCategory();
   const { isLoading: fetchLoading, error: fetchError, data: fetchData, handleGetCategory }        = useGetCategory();
   const { isLoading: deleteLoading, error: deleteError, data: deleteData, handleDiscardCategory } = useDiscardCategory();
+
+  const [error, setError] = useState<{message?: string, type?: "error" | "warning" | "success" | "info", show: boolean}>({
+    message: '',
+    type: 'info',
+    show: false
+  });
+
+  useEffect(() => {
+    if (createError) {
+    setError({ message: createError.message, type: "error", show: true });
+  } else if (fetchError) {
+    setError({ message: fetchError.message, type: "error", show: true });
+  } else if (deleteError) {
+    setError({ message: deleteError.message, type: "error", show: true });
+  } else {
+    setError({ show: false }); // Nenhum erro
+  }
+  }, [createError, fetchError, deleteError]);
 
   const handleSubmit = () => {
     handleCreateCategory(label);
@@ -39,9 +58,10 @@ export default function Novo() {
     handleGetCategory(label);
   }, [label]);
 
-  const handleDeleteCategorie = (slug: string) => {
-    handleDiscardCategory(slug);
+  const handleDeleteCategorie = async (slug: string) => {
+    await handleDiscardCategory(slug);
     setLabel('');
+    handleGetCategory();
   }
 
   return (
@@ -79,12 +99,10 @@ export default function Novo() {
             'Criar'
           )}
         </button>
-        {createError && <p className="text-red-500">{createError}</p>}
       </div>
 
       {/* Se houver erro ao buscar categorias */}
-      {fetchError && <p className="text-red-500">Erro ao carregar categorias: {fetchError.message}</p>}
-
+      <FlashMessage type="error" message={error.message!} show={error.show} onClick={() => setError({ show: false })} />
       {/* Exibição das categorias */}
       <div className="flex-1 grid grid-flow-row auto-rows-max gap-2 md:grid-cols-2 lg:grid-cols-3">
         {fetchLoading ? (
@@ -119,7 +137,6 @@ export default function Novo() {
       </div>
 
       {/* Erro ao excluir categoria */}
-      {deleteError && <p className="text-red-500">{deleteError}</p>}
 
       <GuidanceButton />
     </div>

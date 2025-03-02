@@ -5,7 +5,7 @@ type TFlashMessage = {
   show: boolean,
   type: 'error' | 'warning' | 'success' | 'info',
   message: string,
-  onClick: () => void,
+  onClick?: () => void,
 }
 
 export default function FlashMessage({

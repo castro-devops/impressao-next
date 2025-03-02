@@ -42,14 +42,14 @@ export function Product({
   };
 
   useEffect(() => {
-    handleGetCategory();
-  }, [router]);
-
-  useEffect(() => {
-    if (!loadingCategory && (!dataCategory || dataCategory.length === 0)) {
-      window.location.href = "/admin/category";
-    }
-  }, [loadingCategory, dataCategory]);
+    const fetchData = async () => {
+      const categories = await handleGetCategory();
+      if ("error" in categories) {
+        router.push("/admin/category");
+      }
+    };
+    fetchData();
+  }, []);
 
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState<{message: string, type: "error" | "warning" | "success" | "info"} | false>(false);

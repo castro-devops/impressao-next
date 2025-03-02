@@ -2,45 +2,61 @@
 
 import { useRouter } from "next/navigation";
 import { auth } from "@/services/FirebaseConfig";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSignInWithEmailAndPassword } from 'react-firebase-hooks/auth';
 
 import { faLock, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Toast from "@/components/toastLoading";
+import FlashMessage from "@/components/flashMessage";
 
 export default function Admin () {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loadingLogin, setLoadingLogin] = useState(false);
+  const [errorGlobal, setErrorGlobal] = useState<{message?: string, type?: string, show: boolean}>({ show: false });
   
-
   const [
   signInWithEmailAndPassword,
   user,
-  loading,
-  error,
   ] = useSignInWithEmailAndPassword(auth);
 
 const handleLogin = async () => {
+
+  if (!email || !password) {
+    setErrorGlobal({
+      message: `Por favor, preencha ${
+        !email && !password
+          ? "todos os campos"
+          : email
+          ? "a senha"
+          : "o email para entrar"
+      }.`,
+      type: 'error',
+      show: true
+    });
+    return;
+  }
+
   setLoadingLogin(true);
-    const userCredentials = await signInWithEmailAndPassword(email, password);
-    if (userCredentials?.user) {
+
+  const userCredentials = await signInWithEmailAndPassword(email, password);
+  if (userCredentials?.user) {
 
   const token = await userCredentials.user.getIdToken();
     try {
       const response = await fetch("/api/v1/auth", {
-          method: "POST",
-          headers: {
-                "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ token }),
+        method: "POST",
+        headers: {
+              "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token }),
       })
 
       // Verifica se a resposta foi bem-sucedida
       if (!response.ok) {
-          throw new Error(`Erro ao definir cookie: ${response.statusText}`);
+        throw new Error(`Erro ao definir cookie: ${response.statusText}`);
       }
 
       if (response.ok) {
@@ -48,29 +64,23 @@ const handleLogin = async () => {
         router.push('/admin/category');
       }
     } catch (error) {
-          // Captura qualquer erro que ocorrer no fetch ou na resposta
-          console.log('Erro no login ou na configuração do cookie:', error);
+      // Captura qualquer erro que ocorrer no fetch ou na resposta
+      console.log('Erro no login ou na configuração do cookie:', error);
     } finally {
       setLoadingLogin(false);
     }
   }
 }
-  
-  if (error) {
-  return (
-      <div>
-      <p>Error: {error.message}</p>
-      </div>
-  );
-  }
+
   if (user) {
-      router.push('/admin/category');
+    router.push('/admin/category');
   }
 
   return (
       <div className="h-full flex items-center justify-center">
         {loadingLogin && <Toast />}
             <div className="p-7 bg-white min-h-96 w-full flex flex-col gap-10 rounded-lg shadow-lg">
+              <FlashMessage message={errorGlobal ? `${errorGlobal.message}` : ''} type="error" show={errorGlobal.show} onClick={() => setErrorGlobal({ show: false })} />
                 <h1 className="text-3xl">Configurações</h1>
                 <div className="flex flex-col gap-4">
                       <div className="relative flex items-center bg-white border border-neutral-600 rounded-lg shadow-lg text-sm">
