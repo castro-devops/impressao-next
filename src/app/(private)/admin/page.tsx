@@ -18,8 +18,10 @@ export default function Admin () {
   const [errorGlobal, setErrorGlobal] = useState<{message?: string, type?: string, show: boolean}>({ show: false });
   
   const [
-  signInWithEmailAndPassword,
-  user,
+    signInWithEmailAndPassword,
+    user,
+    loading,
+    error,
   ] = useSignInWithEmailAndPassword(auth);
 
 const handleLogin = async () => {
@@ -65,10 +67,22 @@ const handleLogin = async () => {
       }
     } catch (error) {
       // Captura qualquer erro que ocorrer no fetch ou na resposta
+      setErrorGlobal({
+        type: 'error',
+        message: error.message || 'Ops, erro ao fazer login.',
+        show: true,
+      });
       console.log('Erro no login ou na configuração do cookie:', error);
     } finally {
       setLoadingLogin(false);
     }
+  } else {
+    setErrorGlobal({
+      type: 'error',
+      message: 'Ops, tivemos um erro inesperado ao fazer login, verifique suas credenciais.',
+      show: true,
+    });
+    setLoadingLogin(false);
   }
 }
 
