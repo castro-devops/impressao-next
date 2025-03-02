@@ -69,7 +69,7 @@ const handleLogin = async () => {
       // Captura qualquer erro que ocorrer no fetch ou na resposta
       setErrorGlobal({
         type: 'error',
-        message: error.message || 'Ops, erro ao fazer login.',
+        message: 'Erro no login ou na configuração do cookie.',
         show: true,
       });
       console.log('Erro no login ou na configuração do cookie:', error);
