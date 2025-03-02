@@ -24,6 +24,12 @@ export default function Admin () {
     error,
   ] = useSignInWithEmailAndPassword(auth);
 
+  useEffect(() => {
+    if (user) {
+      router.push('/admin/category');
+    }
+  }, [user, router]);
+
 const handleLogin = async () => {
 
   if (!email || !password) {
@@ -61,10 +67,8 @@ const handleLogin = async () => {
         throw new Error(`Erro ao definir cookie: ${response.statusText}`);
       }
 
-      if (response.ok) {
-        // Se o fetch foi bem-sucedido, faz o redirecionamento
-        router.push('/admin/category');
-      }
+      // Se o fetch foi bem-sucedido, faz o redirecionamento
+      router.push('/admin/category');
     } catch (error) {
       // Captura qualquer erro que ocorrer no fetch ou na resposta
       setErrorGlobal({

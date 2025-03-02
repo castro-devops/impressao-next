@@ -24,7 +24,6 @@ export function middleware(request: NextRequest) {
   if (token) {
     try {
       decoded = jwtDecode(token);  // Tente decodificar o token apenas se existir
-      console.log('Token decoded:', decoded);
     } catch (error) {
       console.error('Erro ao decodificar token:', error);
     }
@@ -41,19 +40,15 @@ export function middleware(request: NextRequest) {
   if (today === targetDate) {
     const response = NextResponse.next();
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    console.log('Cache-Control set to no-store');
   }
 
   // Se a rota for pública e não houver token, permite o acesso
   if (!token && publicRoute?.access === 'public') {
-    console.log(publicRoute);
-    console.log('Public route and no token, access granted');
     return NextResponse.next();
   }
 
   // Se não houver token e a rota for privada, redireciona
   if (!token && publicRoute?.access === 'private') {
-    console.log('Private route and no token, redirecting');
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = REDIRECT_DEFAULT;
     return NextResponse.redirect(redirectUrl);
@@ -62,7 +57,6 @@ export function middleware(request: NextRequest) {
   // Se o token estiver presente e a rota for privada, verifica a expiração
   const currentTime = Date.now() / 1000;
   if (token && publicRoute?.access === 'private' && currentTime > decoded.exp) {
-    console.log('Token expired, redirecting');
     const response = NextResponse.redirect(REDIRECT_DEFAULT);
     response.cookies.delete('token');  // Deleta o cookie 'token' caso expirado
     return response;
@@ -70,14 +64,12 @@ export function middleware(request: NextRequest) {
 
   // Se o token estiver presente e a rota for pública e não privada, redireciona para /admin/category
   if (token && publicRoute?.access === 'public') {
-    console.log('Token present and public route, redirecting to /admin/category');
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = '/admin/category';
     return NextResponse.redirect(redirectUrl);
   }
 
   // Caso todas as verificações passem, continua o processo
-  console.log('Middleware passes, continuing');
   return NextResponse.next();
 }
 
