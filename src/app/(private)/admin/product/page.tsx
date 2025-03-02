@@ -22,11 +22,11 @@ export default function Novo() {
   return (
     <div className="relative h-full p-4 flex flex-col gap-3">
       {/* Barra de navegação */}
-      <div className="relative bg-white flex justify-stretch rounded-lg shadow-sm text-center">
-        <a href="/" className="py-3 flex-1 transition border-b-2 border-transparent hover:border-blue-500">Shop</a>
-        <a href="/admin/product" className="py-3 flex-1 transition border-b-2 border-transparent hover:border-blue-500">Produtos</a>
-        <a href="/admin/category" className="py-3 flex-1 transition border-b-2 border-transparent hover:border-blue-500">Categorias</a>
-        <a onClick={userLogout} className="py-3 flex-1 transition border-b-2 border-transparent hover:border-blue-500">Sair</a>
+      <div className="relative bg-white flex justify-stretch rounded-lg shadow-sm border border-neutral-100 text-center">
+        {/* <a href="/" className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500 cursor-pointer">Shop</a> */}
+        <a href="/admin/product" className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500 cursor-pointer">Produtos</a>
+        <a href="/admin/category" className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500 cursor-pointer">Categorias</a>
+        <a onClick={userLogout} className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500 cursor-pointer">Sair</a>
       </div>
 
       {/* Preview do produto */}

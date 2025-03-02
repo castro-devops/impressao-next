@@ -4,6 +4,7 @@ import { jwtDecode } from "jwt-decode";
 const publicRoutes: { path: string; access: 'private' | 'public' | 'blocked' }[] = [
   { path: '/admin', access: 'public' },
   { path: '/admin/product', access: 'private' },
+  { path: '/admin/product/view', access: 'private' },
   { path: '/admin/category', access: 'private' },
   { path: '/', access: 'blocked' }
 ];
