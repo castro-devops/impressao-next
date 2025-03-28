@@ -4,26 +4,30 @@ import slugify from 'slugify';
 
 export async function GET(request: NextRequest) {
 
-     const { searchParams } = new URL(request.url);
-     const label = searchParams.get('label') || '';
-     
-     const categories = await prisma.category.findMany({
-          where: {
-               label: {
-                    contains: label,
-               }
-          },
-          orderBy: {
-               label: 'asc',
-          }
-     });
+  const { searchParams } = new URL(request.url);
+  const label = searchParams.get('label');
+  
+  const categories = await prisma.category.findMany({
+      where: label ? {
+        active: true,
+        label: {
+            contains: label,
+        }
+      } : {},
+      select: {
+        label: true,
+        slug: true,
+      },
+      orderBy: {
+            label: 'asc',
+      }
+  });
 
-     if (categories.length > 0) {
-          return NextResponse.json(categories);
-     } else {
-          return NextResponse.json({ error: 'Nenhuma categoria encontrada' });
-     }
-
+  if (categories.length > 0) {
+    return NextResponse.json(categories);
+  } else {
+    return NextResponse.json({ error: 'Nenhuma categoria encontrada' });
+  }
 }
 
 export async function POST(request: NextRequest) {

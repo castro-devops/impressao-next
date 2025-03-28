@@ -3,10 +3,10 @@ import { get, post, del } from "@/utils/api";
 const BASE_URL = '/api/v1/products';
 
 interface IProduct {
-     name        : string,
-     description?: string,
-     category    : string,
-     imgs_id     : string,
+  name: string;
+  description?: string;
+  category_slug: string; // Alterar de "category" para "category_slug"
+  imgs_id: string[];
 }
 
 export async function getProducts(page: number = 1, limit: number = 10, filter: string = '') {
@@ -15,7 +15,7 @@ export async function getProducts(page: number = 1, limit: number = 10, filter: 
 
 export async function createProduct(data: IProduct) {
   const response = await post<IProduct>(BASE_URL, {
-    body: JSON.stringify(data)
+    body: JSON.stringify(data),
   });
   return response;
 }

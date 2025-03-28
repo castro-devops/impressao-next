@@ -18,17 +18,26 @@ type TItemsSize = {
 
 function SizeConfig() {
   const store = useProduct();
-  const [configs, setConfigs] = useState(store.product.configs.find(config => config.type === 'size'));
+  const [configs, setConfigs] = useState(() => {
+    if (store.product.config && Array.isArray(store.product.config)) {
+      return store.product.config.find(config => config.type === 'size');
+    }
+    return undefined; // Caso não seja um array ou seja undefined
+  });
+
   const [config, setConfig] = useState<TItemsSize[]>(configs ? JSON.parse(configs.config) : []);
 
   const [isChecked, setIsChecked] = useState<boolean>(configs ? configs.meter_2 || false : false);
 
   useEffect(() => {
-    const newConfigs = store.product.configs.find(config => config.type === 'size');
-    setConfigs(newConfigs);
-    setConfig(newConfigs ? JSON.parse(newConfigs.config) : []);
-    setIsChecked(newConfigs ? newConfigs.meter_2 || false : false);
-  }, [store.product.configs]);
+    if (Array.isArray(store.product.config)) {
+      const newConfig = store.product.config.find(config => config.type === 'size');
+      setConfigs(newConfig);
+      setConfig(newConfig ? JSON.parse(newConfig.config) : []);
+      setIsChecked(newConfig ? newConfig.meter_2 || false : false);
+    }
+  }, [store.product.config]);
+
 
   const handleSetChecked = () => {
     const newChecked = !isChecked;

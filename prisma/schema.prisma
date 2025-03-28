@@ -8,63 +8,118 @@ datasource db {
 }
 
 model Category {
-  id    String @id @default(uuid())
-  label String
-  slug  String? @unique
+  id             String          @id @default(uuid())
+  label          String
+  slug           String          @unique
+  created_at     DateTime        @default(now())
+  updated_at     DateTime?       @default(now()) @updatedAt
+  active         Boolean         @default(true)
+  product_images ProductImages[]
+  products       Product[]
+
+  @@map("categories")
 }
 
 model Product {
-  id          String @id @default(uuid())
-  name        String
-  slug        String? @unique
-  description String
-  category    String
-  imgs_id     String
-  config      ProductConfig?
-  created_at  DateTime @default(now())
-  updated_at  DateTime?
+  id            String            @id @default(uuid())
+  name          String
+  slug          String            @unique
+  description   String?
+  category_slug String
+  created_at    DateTime          @default(now())
+  updated_at    DateTime?         @updatedAt
+  active        Boolean           @default(true)
+  cart_item     CartItem?
+  product_imgs  ImagesOnProduct[]
+  config        ProductConfig?
+  categories    Category          @relation(fields: [category_slug], references: [slug], onDelete: Cascade)
+
+  @@index([category_slug], map: "products_category_slug_fkey")
+  @@map("products")
 }
 
 model ProductConfig {
-  id        String  @id @default(uuid())
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId String  @unique
-  schema    Json
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+  product_id String   @unique
+  schema     String   @db.LongText
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  product    Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@map("product_configs")
 }
 
-model Order {
-  id      String @id @default(uuid())
-  status  String
-  details Json
-  price   Float
-  clients ClientOrder[]
+model ProductImages {
+  id            String            @id @default(uuid())
+  telegram_id   String            @db.LongText
+  category_slug String
+  products      ImagesOnProduct[]
+  categories    Category          @relation(fields: [category_slug], references: [slug], onDelete: Cascade)
+
+  @@index([category_slug], map: "product_images_category_slug_fkey")
+  @@map("product_images")
+}
+
+model ImagesOnProduct {
+  product_id String
+  image_id   String
+  image      ProductImages @relation(fields: [image_id], references: [id], onDelete: Cascade)
+  product    Product       @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@id([product_id, image_id])
+  @@index([image_id], map: "images_on_product_image_id_fkey")
+  @@map("images_on_product")
 }
 
 model Client {
-  id      String @id @default(uuid())
-  ip      String
-  contact String
-  city    String
-  uf      String
-  orders  ClientOrder[]
+  id         String    @id @default(uuid())
+  name       String
+  created_at DateTime  @default(now())
+  updated_at DateTime? @default(now()) @updatedAt
+  contact    Int
+  active     Boolean   @default(true)
+  cart       Cart?
+  orders     Orders[]
+
+  @@map("clients")
 }
 
-model ClientOrder {
-  clientId String
-  orderId  String
-  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  order    Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
-  @@id([clientId, orderId])
+model Orders {
+  id         String    @id @default(uuid())
+  status     String
+  details    String    @db.LongText
+  price      Float
+  client_id  String
+  created_at DateTime  @default(now())
+  updated_at DateTime? @updatedAt
+  active     Boolean   @default(true)
+  client     Client    @relation(fields: [client_id], references: [id], onDelete: Cascade)
+
+  @@index([client_id], map: "orders_client_id_fkey")
+  @@map("orders")
 }
 
-model Auth {
-  id         String   @id @default(uuid()) 
-  token      String   @unique
-  expired    Boolean  @default(false)       // Indica se o token foi invalidado manualmente
-  createdAt  DateTime @default(now())       // Data de criação do token
-  expiresAt  DateTime                        // Expiração do token (7 dias)
-  ip_user    String   @unique                // O IP do usuário (impede múltiplos registros)
-  user_agent String?
+model Cart {
+  id         String     @id @default(uuid())
+  client_id  String     @unique
+  status     String
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
+  active     Boolean    @default(true)
+  client     Client     @relation(fields: [client_id], references: [id], onDelete: Cascade)
+  cart_item  CartItem[]
+
+  @@map("cart")
+}
+
+model CartItem {
+  id         String  @id @default(uuid())
+  cart_id    String
+  product_id String  @unique
+  active     Boolean @default(true)
+  cart       Cart    @relation(fields: [cart_id], references: [id], onDelete: Cascade)
+  product    Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@index([cart_id], map: "cart_item_cart_id_fkey")
+  @@map("cart_item")
 }

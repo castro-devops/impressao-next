@@ -12,35 +12,37 @@ import { QuantityConfig } from "./QuantityConfig";
 import useProduct from "@/store/useProduct";
 import { type Product } from "@/types/Product";
 import { useGetCategory } from "@/hooks/useCreateCategory";
-import { Listbox, ListboxButton, ListboxOption, ListboxOptions, MenuButton } from "@headlessui/react";
+import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import { ViewConfigs } from "./ViewProductConfig";
 import { priceUnit } from "@/hooks/useQuantitySize";
 import { useRouter } from "next/navigation";
-import { NextRequest, NextResponse } from "next/server";
 
-export function Product({
-     data,
-     create = false,
-}: { data?: Product, create?: boolean }) {
+export function Product({ data, create = false }: { data?: Product; create?: boolean }) {
 
   const store = useProduct();
   const router = useRouter();
 
+  // Calcula o preço com base na configuração atual
   const itemFinished = priceUnit();
 
-  const { isLoading: loadingCategory, error: errorCategory, data: dataCategory, handleGetCategory } = useGetCategory();
-  const { isLoading: loadingCreate, error: errorCreate, data: dataCreate, handleCreateProduct }     = useCreateProduct();
+  // Hooks para criar e buscar categorias
+  const { isLoading: loadingCategory, data: dataCategory, error: errorCategory, handleGetCategory } = useGetCategory();
+  const { isLoading: loadingCreate, error: errorCreate, handleCreateProduct } = useCreateProduct();
 
+  // Estados locais para gerenciar erros e carregamento
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<{ message: string; type: "error" | "warning" | "success" | "info" } | false>(false);
 
   const validFields: Record<string, string> = {
-    photos: 'border-red-500',
-    name: 'border-red-500',
-    category: 'border-red-500',
-    description: 'border-red-500',
+    photos: "border-red-500",
+    name: "border-red-500",
+    category: "border-red-500",
+    description: "border-red-500",
   };
 
+  // Busca categorias ao carregar o componente
   useEffect(() => {
     const fetchData = async () => {
       const categories = await handleGetCategory();
@@ -51,76 +53,26 @@ export function Product({
     fetchData();
   }, []);
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState<{message: string, type: "error" | "warning" | "success" | "info"} | false>(false);
-
-  useEffect(() => {
-    store.setEditMagic(create);
-    if (data) {
-      store.setProduct(data.name, 'name');
-      store.setProduct(data.description, 'description');
-      store.setProduct(data.category, 'category');
-      store.setProduct(data.count, 'count');
-    }
-  }, [create, data]);
-
-  const renderSetPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files).slice(0, 3); // Garante apenas 3 arquivos
-      const newPhotosSrcs: string[] = [];
-
-      const dataTransfer = new DataTransfer();
-      files.forEach(file => dataTransfer.items.add(file));
-      const fileList = dataTransfer.files;
-
-      files.forEach((file) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          newPhotosSrcs.push(reader.result as string);
-
-          // Verifica se já leu todos os arquivos
-          if (newPhotosSrcs.length === files.length) {
-            store.setProduct(newPhotosSrcs, 'photosSrcs');
-          }
-        };
-        reader.readAsDataURL(file);
-      });
-      store.setProduct(fileList, 'photos'); // Salva apenas os arquivos limitados
-    }
-  };
-
-  const removedPhotos = (index: number) => {
-    const updateSrcs = store.product.photosSrcs.filter((_, i) => i !== index);
-    const photos = store.product.photos ?? new DataTransfer().files;
-
-    const dataTransfer = new DataTransfer();
-    Array.from(photos)
-      .filter((_, i) => i !== index)
-      .forEach((file) => dataTransfer.items.add(file));
-    const updatedFiles = dataTransfer.files;
-
-    store.setProduct(updateSrcs, 'photosSrcs');
-    store.setProduct(updatedFiles, 'photos');
-  }
-
   const [indexPhoto, setIndexPhoto] = useState<number>(0);
 
   useEffect(() => {
-    const index = (store.product.photosSrcs.length - 1);
-    if (index < indexPhoto) {
-      setIndexPhoto(index);
-    } else {
-      setIndexPhoto(0);
+    if (store.product.photosSrcs) {
+      const index = store.product.photosSrcs.length - 1;
+      if (index < indexPhoto) {
+        setIndexPhoto(index);
+      } else {
+        setIndexPhoto(0);
+      }
     }
-  }, [store.product.photosSrcs.length]);
+  }, [store.product.photosSrcs?.length]);
 
-  const [localDescription, setLocalDescription] = useState<string>(store.product.description);
+
+  const [localDescription, setLocalDescription] = useState<string>(store.product.description || '');
 
   const replacements = [
-    { search: '/*', value: '<b>' },
-    { search: '*/', value: '</b>' },
-    { search: '~/', value: '<i>' },
-    { search: '/~', value: '</i> ' },
+    { search: '/', value: '<b>' },
+    { search: '/', value: '</b>' },
+    { search: '', value: '</i> ' },
     { search: '<a', value: '<a target="_blank"' },
     { search: '>>', value: '<i class="fa-solid fa-check text-sm"></i>' },
   ];
@@ -148,87 +100,154 @@ export function Product({
       delete updatedErrors[field]; // Remove o campo específico
       return updatedErrors; // Retorna o novo objeto sem o erro do campo
     });
-  }
-
-  const handleResetProduct = () => {
-    store.rmProduct();
-    setLocalDescription('');
   };
 
+  const removedPhotos = (index: number) => {
+    // Verifica se photosSrcs não é undefined
+    const updateSrcs = store.product.photosSrcs ? store.product.photosSrcs.filter((_, i) => i !== index) : [];
+    
+    // Usa um valor padrão para photos caso seja undefined
+    const photos = store.product.photos ?? new DataTransfer().files;
+    
+    const dataTransfer = new DataTransfer();
+    
+    // Filtra as fotos e adiciona no DataTransfer
+    Array.from(photos)
+      .filter((_, i) => i !== index)
+      .forEach((file) => dataTransfer.items.add(file));
+    
+    const updatedFiles = dataTransfer.files;
+
+    // Passando um objeto parcial para manter a compatibilidade de tipos
+    store.setProduct({ photosSrcs: updateSrcs }, 'photosSrcs');  // Passa como um objeto parcial
+    store.setProduct({ photos: updatedFiles }, 'photos');  // Passa como um objeto parcial
+  };
+
+
+  const handleResetProduct = () => { store.rmProduct(); setLocalDescription(''); };
+
+  // Sincroniza o estado inicial do produto no Zustand
+  useEffect(() => {
+    store.setEditMagic(create);
+    if (data) {
+      store.setProduct(data.name, "name");
+      store.setProduct(data.description || '', "description");
+      store.setProduct(data.category_slug, "category_slug");
+      store.setConfig(data.config ?? {}); // Configuração inicial (vazia ou existente)
+    }
+  }, [create, data]);
+
+  const renderSetPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = Array.from(e.target.files).slice(0, 3); // Garante apenas 3 arquivos
+      const newPhotosSrcs: string[] = [];
+
+      const dataTransfer = new DataTransfer();
+      files.forEach(file => dataTransfer.items.add(file));
+      const fileList = dataTransfer.files;
+
+      files.forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          newPhotosSrcs.push(reader.result as string);
+
+          // Verifica se já leu todos os arquivos
+          if (newPhotosSrcs.length === files.length) {
+            store.setProduct({ photosSrcs: newPhotosSrcs }, 'photosSrcs');  // Passa como objeto parcial
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+
+      store.setProduct({ photos: fileList }, 'photos');  // Passa como objeto parcial
+    }
+  };
+
+
+  // Função para lidar com a submissão do formulário
   const handleProductSubmit = async () => {
     setLoading(true);
-    
-    try {
-      const fieldErrorsTemp: Record<string, string> = {};
 
-      // Valida cada campo com base no `validFields`
+    try {
+      // Validação de campos obrigatórios
+      const fieldErrorsTemp: Record<string, string> = {};
       Object.keys(validFields).forEach((field) => {
-        if (!store.product[field]) {
-          fieldErrorsTemp[field] = validFields[field]; // Adiciona a classe de borda
+        if (!store.product[field as keyof Product]) {
+          fieldErrorsTemp[field] = validFields[field];
         }
       });
       setFieldErrors(fieldErrorsTemp);
 
       const hasEmptyField = Object.keys(fieldErrorsTemp).length > 0;
-
       if (hasEmptyField) {
         setError({ message: "Ops, verifique se todos os campos estão preenchidos.", type: "error" });
-        throw new Error("Ops, verifique se todos os campos estão preenchidos.");
+        return;
       }
-      
+
+      // Validação do config
+      const config = store.product.config;
       const isValidConfig = (config: any) => {
+        if (!config) return false;
         try {
           const parsedConfig = JSON.parse(config.config);
           const isValidConfigStructure = Array.isArray(parsedConfig) && parsedConfig.length > 0;
-          
+
           if (config.meter_2) {
-            return config.price_min_meter !== "" && config.price_max_meter !== "" && isValidConfigStructure;
+            return config.price_min_meter !== undefined && config.price_max_meter !== undefined && isValidConfigStructure;
           }
-          
+
           return isValidConfigStructure;
         } catch {
           return false;
         }
       };
 
-      const hasInvalidConfigs = store.product.configs.some(config => !isValidConfig(config));
-
-      if (hasInvalidConfigs) {
+      if (!isValidConfig(config)) {
         setError({ message: "Ops, preencheu as configurações corretamente?", type: "error" });
-        throw new Error("Ops, verifique se todos os campos estão preenchidos.");
+        return;
       }
 
-      const response = await handleCreateProduct({
-        name       : store.product.name,
-        description: store.product.description,
-        category   : store.product.category,
-        configs    : store.product.configs,
-      }, store.product.photos as FileList);
-      
+      // Submete o produto para criação
+      const response = await handleCreateProduct(
+        {
+          name: store.product.name,
+          description: store.product.description,
+          category_slug: store.product.category_slug,
+          config: JSON.stringify(store.product.config), // Convertendo o config para string
+        },
+        store.product.photos as FileList
+      );
+
       if (response) {
         setError({ message: "Produto criado com sucesso.", type: "success" });
         store.rmProduct();
-        setLocalDescription('');
       } else {
         setError({ message: "Tivemos um erro ao criar o produto.", type: "error" });
-        throw new Error("Tivemos um erro ao criar o produto.");
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      setError({ message: "Erro ao processar a criação do produto.", type: "error" });
     } finally {
       setLoading(false);
     }
-  }
+  };
+
+
 
   return (
-    <div className="w-auto md:w-full max-w-[1350px] flex flex-col gap-5 p-2 flex-1 min-h-0">
+    <div className="w-auto md:w-full max-w-[1350px] flex flex-col gap-5 lg:flex-1 lg:min-h-0">
       {/* Evento de Loading */}
       {loading && (
         <Toast />
       )}
       <FlashMessage show={error ? true : false} type={typeof error === "object" ? error.type : 'warning'} message={typeof error === "object" ? error.message : 'Opa, não obtivemos um retorno válido.'} onClick={() => setError(false)} />
 
-      <div className="grid grid-cols-[320px_1fr] gap-5 flex-1 min-h-0">
+      <div className="grid lg:grid-cols-[320px_1fr] gap-5 flex-1 min-h-0">
+        <div className="p-1 flex lg:hidden rounded-lg bg-white shadow-md border-2 border-neutral-200">
+          <button className="toggle-btn flex-1 p-3" id="btn-create">Criar</button>
+          <button className="toggle-btn flex-1 p-3" id="btn-preview">Visualizar</button>
+        </div>
+
         <div className="col-span-1 bg-white p-4 border-2 border-neutral-100 shadow-lg rounded-lg flex flex-col gap-3 overflow-y-auto scrollbar-none">
           <p className="text-2xl text-neutral-600 font-medium">Criar produto</p>
           <label className={`px-4 py-7 text-left text-neutral-700 border ${fieldErrors.photos || 'border-neutral-200'} rounded-lg flex flex-col items-center gap-1 cursor-pointer`}>
@@ -249,9 +268,9 @@ export function Product({
             onChange={(e)=> handleFieldChange(e, 'name')}
             className={`p-4 border ${fieldErrors.name || 'border-neutral-200'} text-left rounded-lg`}
             placeholder="Nome do produto" />
-          <Listbox value={store.product.category} onChange={value => handleFieldChange(value, 'category')}>
+          <Listbox value={store.product.category_slug} onChange={value => handleFieldChange(value, 'category_slug')}>
             <ListboxButton className={`p-4 border ${fieldErrors.category || 'border-neutral-200'} text-left rounded-lg`}>
-              <span>{dataCategory?.find(data => data.slug === store.product.category)?.label || 'Categoria'}</span>
+              <span>{dataCategory?.find(data => data.slug === store.product.category_slug)?.label || 'Categoria'}</span>
             </ListboxButton>
             <ListboxOptions className={`p-1 border border-neutral-200 rounded-lg shadow-md max-h-72 overflow-auto flex-none`}>
               {dataCategory?.map(category => (
@@ -292,27 +311,27 @@ export function Product({
 
         <div className="bg-white p-4 border-2 border-neutral-100 shadow-lg rounded-lg">
           <p className="py-0.5 font-semibold text-neutral-700">Prévia</p>
-          <div className="grid grid-cols-[1fr_300px] gap-3">
+          <div className="grid xl:grid-cols-[1fr_300px] gap-3">
             {/* grid de imagems */}
             <div className="flex flex-col gap-5">
             <div className="relative grid gap-2">
-              <div className={`h-[520px] bg-neutral-200 overflow-hidden flex items-center justify-center`}>
-                {store.product.photosSrcs.length > 0 && (
+              <div className={`h-[240px] lg:h-[520px] bg-neutral-200 overflow-hidden flex items-center justify-center`}>
+                {store.product.photosSrcs && store.product.photosSrcs.length > 0 && (
                   <img
                     src={`${store.product.photosSrcs[indexPhoto]}`}
                     className="min-w-full min-h-full object-cover"
                     alt="" />
                 )}
-                {store.product.photosSrcs.length == 0 && (
+                {store.product.photosSrcs && store.product.photosSrcs.length == 0 && (
                   <FontAwesomeIcon className="text-8xl text-neutral-500 animate-pulse" icon={faImages} />
                 )}
               </div>
-              <div className={`absolute bottom-0 left-0 grid grid-cols-9 gap-3 p-3 ${store.product.photosSrcs.length > 0 ? 'bg-white' : ''} bg-opacity-70`}>
-                {store.product.photosSrcs.map((img, i) => (
+              <div className={`absolute bottom-0 left-0 grid grid-cols-3 lg:grid-cols-9 gap-3 p-3 ${store.product.photosSrcs && store.product.photosSrcs.length > 0 ? 'bg-white' : ''} bg-opacity-70`}>
+                {store.product.photosSrcs && store.product.photosSrcs.map((img, i) => (
                 <div
                   onClick={() => setIndexPhoto(i)}
                   key={`${i}-img`}
-                  className="relative bg-neutral-100 rounded-md h-20 flex items-center justify-center overflow-hidden cursor-pointer border-2 border-neutral-200 hover:border-neutral-800 transition col-span-2">
+                  className="relative bg-neutral-100 rounded-md h-20 flex items-center justify-center overflow-hidden cursor-pointer border-2 border-neutral-200 hover:border-neutral-800 transition col-span-1 lg:col-span-2">
                   <img
                       src={`${img}`}
                       className="min-w-full min-h-full object-cover"
@@ -330,11 +349,18 @@ export function Product({
             <div className="flex flex-col gap-8">
               <div>
                 <p className="text-2xl">{store.product.name || 'Nome do Produto'}</p>
-                <p className="text-sm">{dataCategory?.find(data => data.slug === store.product.category)?.label || 'Categoria'}</p>
+                <p className="text-sm">{dataCategory?.find(data => data.slug === store.product.category_slug)?.label || 'Categoria'}</p>
               </div>
               <div className="flex flex-col gap-2">
-                <p className="text-sm text-neutral-500">{itemFinished?.quantity ? itemFinished.quantity == 1 ? '1 unidade por' : `${itemFinished.quantity} unidades por` : 'Sem unidade definida' }</p>
-                <p className="text-4xl font-light">{itemFinished?.priceTotal ? moneyBRL(itemFinished.priceTotal) : moneyBRL(0)}</p>
+                <p className="text-sm text-neutral-500">{itemFinished?.quantity 
+                    ? itemFinished.quantity == 1 
+                      ? '1 unidade por' 
+                      : `${itemFinished.quantity} unidades por` 
+                    : 'Sem unidade definida' 
+                  }</p>
+                <p className="text-4xl font-light">{itemFinished && 'priceTotal' in itemFinished 
+                  ? moneyBRL(itemFinished.priceTotal) 
+                  : moneyBRL(0)}</p>
               </div>
               <div>
                 <pre className="whitespace-break-spaces font-sans flex-col gap-2"

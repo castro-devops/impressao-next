@@ -1,154 +1,102 @@
-import { createProduct, deleteProduct, getProducts } from "@/services/ProductService";
-import { useEffect, useState } from "react";
+import { createProduct } from "@/services/ProductService";
 import { useSendPhoto } from "./useTelegram";
 import { createConfig } from "@/services/ProductConfigService";
+import { useState } from "react";
 
 interface IProduct {
-    name        : string;
-    description?: string;
-    category    : string;
-    imgs_id     : string;
-    configs?    : any[];
-}
-
-interface IProductConfig {
-  productId: string;
-  schema   : any;
+  name: string;
+  description?: string;
+  category_slug: string;
+  imgs_id: string[];
 }
 
 interface IProductResponse extends IProduct {
-  id?: string,
+  id?: string;
 }
+
 interface IProductWithConfig extends IProductResponse {
-  config?: IProductConfig | string;
+  schema?: string | undefined;
+  config?: string | undefined;
 }
 
 interface UseCreateProductReturn {
   isLoading: boolean;
   error: { message: string; status: number } | null;
-  data: IProduct[] | IProductWithConfig | null;
-  handleCreateProduct: (productData: Omit<IProduct, 'imgs_id'>, photos: FileList) => Promise<IProductWithConfig | null>;
+  data: IProductWithConfig | null;
+  handleCreateProduct: (
+    productData: Omit<IProductWithConfig, "imgs_id">,
+    photos: FileList
+  ) => Promise<IProductWithConfig | null>;
 }
 
 export function useCreateProduct(): UseCreateProductReturn {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError]         = useState<{ message: string; status: number } | null>(null);
-  const [data, setData] = useState<IProduct[] | IProductWithConfig | null>(null);
+  const [error, setError] = useState<{ message: string; status: number } | null>(null);
+  const [data, setData] = useState<IProductWithConfig | null>(null);
 
   const { handleSendPhoto, error: errorPhoto, isLoading: loadingPhoto } = useSendPhoto();
 
-  const handleCreateProduct = async (productData: Omit<IProduct, 'imgs_id'>, photos: FileList): Promise<IProductWithConfig | null> => {
+  const handleCreateProduct = async (
+    productData: Omit<IProductWithConfig, "imgs_id">,
+    photos: FileList
+  ): Promise<IProductWithConfig | null> => {
     setIsLoading(true);
     setError(null);
 
     try {
+      // Enviando as fotos
       const savePhotos = await handleSendPhoto(photos);
 
       if (!savePhotos || !savePhotos.ok) {
-        setError({ message: errorPhoto?.message || 'Ops, as fotos não puderam ser salvas, tente novamente', status: 500 });
+        setError({
+          message: errorPhoto?.message || "Ops, as fotos não puderam ser salvas, tente novamente",
+          status: 500,
+        });
         return null;
       }
-      const groupPhotos = savePhotos.result.map((group: { photo: { file_id: string }[] }) => { return group.photo[2].file_id });
 
+      // Processando os IDs das fotos
+      const photoIds = savePhotos.result.map(
+        (group: { photo: { file_id: string }[] }) => group.photo[2].file_id
+      );
+
+      // Preparando os dados do produto
       const finishProduct: IProduct = {
         ...productData,
-        imgs_id: JSON.stringify(groupPhotos),
+        imgs_id: photoIds,
       };
 
+      // Criando o produto
       const response: IProductResponse = await createProduct(finishProduct);
 
       if (!response) {
         setError({ message: "Erro ao criar um novo produto.", status: 500 });
-        return null; // Retorno explícito de null
+        return null;
       }
 
+      // Criando as configurações, se necessário
       let finalResponse: IProductWithConfig = response;
 
-      if (productData.configs) {
-        const configResponse = await createConfig(response.id!, productData.configs);
+      if (productData.config) {
+        const configResponse = await createConfig(response.id!, productData.config);
+
         finalResponse = {
           ...response,
-          config: configResponse,
+          schema: configResponse.schema,
         };
       }
 
-      setData(finalResponse);
-      return finalResponse; // Retorno explícito de IProductWithConfig
+      console.log(finalResponse);
 
+      setData(finalResponse);
+      return finalResponse;
     } catch (error) {
       setError({ message: "Erro ao criar um novo produto.", status: 500 });
-      return null; // Retorno explícito de null
+      return null;
     } finally {
       setIsLoading(false);
     }
   };
-
 
   return { isLoading, error, data, handleCreateProduct };
-}
-
-interface IProductListResponse {
-  products: IProduct[];
-  total: number;
-}
-
-export function useGetProducts(): { 
-  isLoading: boolean;
-  error: { message: string; status: number } | null;
-  data: IProduct[] | null; // Alteração aqui
-  handleGetProducts: () => void;
-} {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<{ message: string; status: number } | null>(null);
-  const [data, setData] = useState<IProduct[] | null>(null);
-
-  const handleGetProducts = async () => {
-  setIsLoading(true);
-  setError(null);
-
-    try {
-      const response: IProduct[] = await getProducts();
-      console.log("Resposta de produtos:", response); // Verifique o que está sendo retornado
-      if (response) {
-        setData(response); // Passa apenas o array de produtos para o estado
-      } else {
-        setError({ message: "Produtos não encontrados.", status: 404 });
-      }
-    } catch (error) {
-      console.error("Erro ao buscar produtos:", error);
-      setError({ message: "Erro ao buscar os produtos.", status: 500 });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-
-  return { isLoading, error, data, handleGetProducts };
-}
-
-export function useDeleteProduct() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError]         = useState<{ message: string; status: number } | null>(null);
-
-  const handleDeleteProduct = async (slug: string) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      if (!slug) {
-        setError({ message: 'Ops, não conseguimos identificar o produto a ser deletado.', status: 500 });
-        return;
-      }
-
-      const response = await deleteProduct(slug);
-      return response;
-    } catch {
-      setError({ message: "Ops, falha ao excluir produto.", status: 500 });
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  return { isLoading, error, handleDeleteProduct }
-
 }

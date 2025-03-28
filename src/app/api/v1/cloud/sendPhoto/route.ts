@@ -19,10 +19,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 1. Buscar o caminho do arquivo no Telegram
+    // URL do Telegram para buscar o caminho do arquivo
     const telegramUrl = `https://api.telegram.org/bot${botToken}/getFile?file_id=${file_id}`;
-
-
     const response = await fetch(telegramUrl);
     const data: TelegramFileResponse = await response.json();
 
@@ -31,62 +29,60 @@ export async function GET(request: NextRequest) {
     }
 
     const file_path = data.result.file_path;
-
-    // 2. Construir URL final para download
     const fileUrl = `https://api.telegram.org/file/bot${botToken}/${file_path}`;
 
     return NextResponse.json({ fileUrl });
   } catch (error) {
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+    console.error("Erro ao buscar arquivo:", error);
+    return NextResponse.json({ error: "Erro interno", details: (error as Error).message }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMediaGroup`;
-  try {
-    // Log para verificar o corpo da requisição
-    const contentType = request.headers.get('content-type') || '';
 
-    // Certifique-se de que a requisição é multipart/form-data
+  try {
+    const contentType = request.headers.get('content-type') || '';
     if (!contentType.includes('multipart/form-data')) {
-      return new Response(JSON.stringify({ error: "Tipo de conteúdo inválido. Esperado multipart/form-data" }), { status: 400 });
+      return NextResponse.json({ error: "Tipo de conteúdo inválido. Esperado multipart/form-data" }, { status: 400 });
     }
 
     const formData = await request.formData();
-
-    const photos = formData.getAll("photos"); // Obtém todos o arquivo
-
-    const areAllPhotosBlobs = photos.every(photo => photo instanceof FormData);
-
-    if (areAllPhotosBlobs) {
-      return new Response(JSON.stringify({ error: "Foto(s) inválida(s) ou não fornecida(s)" }), { status: 400});
-    }
+    const photos = formData.getAll("photos");
 
     const groupPhotos = photos.map((photo, index) => {
       const photoFile = new File([photo], `photo${index}.jpg`);
       const mediaObject = {
         type: 'photo',
-        media: `attach://${photoFile.name}`
+        media: `attach://${photoFile.name}`,
       };
       formData.append(photoFile.name, photoFile);
       return mediaObject;
     });
 
-    // Monta a requisição corretamente
     formData.append('chat_id', chatId!);
     formData.append('media', JSON.stringify(groupPhotos));
 
     const response = await fetch(telegramUrl, {
       method: "POST",
-      body: formData, // O FormData cuida do 'Content-Type' automaticamente
+      body: formData,
     });
 
     const result = await response.json();
-    return new Response(JSON.stringify(result), { status: response.status });
+
+    // Validação de retorno explícita
+    if (!result.ok) {
+      console.error("Erro no Telegram:", result);
+      throw new Error('Erro ao enviar fotos para o Telegram.');
+    }
+
+    const fileIds = result.result.map((photoGroup: { photo: { file_id: string }[] }) =>
+      photoGroup.photo.map(photo => photo.file_id)
+    );
+
+    return NextResponse.json({ ok: true, result: fileIds }, { status: response.status });
   } catch (error) {
-    console.error("Erro ao enviar foto:", error); // Log para depuração
-    return new Response(JSON.stringify({ error: "Erro ao enviar foto", details: error }), {
-      status: 500,
-    });
+    console.error("Erro ao enviar foto:", error);
+    return NextResponse.json({ error: "Erro ao enviar foto", details: (error as Error).message }, { status: 500 });
   }
 }

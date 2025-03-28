@@ -7,46 +7,46 @@ export async function apiFetch<T>(url: string, options: RequestInit): Promise<T>
       ...options,
     });
 
-    if(!response.ok) {
-      throw new Error(response.statusText);
+    if (!response.ok) {
+      throw new Error(`HTTP Error: ${response.status} - ${response.statusText}`);
     }
 
-    return response.json() as Promise<T>;
+    const data = await response.json() as T; // Forçando a tipagem explícita
+    return data;
   } catch (error) {
     throw new Error((error as Error).message);
   }
 }
 
-export async function get<T>(url: string, headers?: Record<string, string>) {
+export async function post<T>(url: string, options: { headers?: Record<string, string>, body: BodyInit }): Promise<T> {
+  console.log('options:', options);
+  return await apiFetch<T>(url, {
+    method: 'POST',
+    ...options,
+  });
+}
+
+export async function get<T>(url: string, headers?: Record<string, string>): Promise<T> {
   return await apiFetch<T>(url, {
     method: 'GET',
     headers: {
-      ...headers
-      }
-    });
-}
-
-export async function post<T>(url: string, options: { headers?: Record< string, string>, body: BodyInit}) {
-  console.log('options:', options);
-  const response = await apiFetch<T>(url, {
-    method: 'POST',
-    ...options
+      ...headers,
+    },
   });
-  return response;
 }
 
-export async function put<T>(url: string, options: { headers?: Record<string, string>, body: BodyInit}) {
+export async function put<T>(url: string, options: { headers?: Record<string, string>, body: BodyInit }): Promise<T> {
   return await apiFetch<T>(url, {
     method: 'PUT',
-    ...options
+    ...options,
   });
 }
 
-export async function del<T>(url: string, headers?: Record<string, string>) {
+export async function del<T>(url: string, headers?: Record<string, string>): Promise<T> {
   return await apiFetch<T>(url, {
     method: 'DELETE',
     headers: {
-      ...headers
-    }
+      ...headers,
+    },
   });
 }

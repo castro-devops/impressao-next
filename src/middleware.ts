@@ -57,7 +57,9 @@ export function middleware(request: NextRequest) {
   // Se o token estiver presente e a rota for privada, verifica a expiração
   const currentTime = Date.now() / 1000;
   if (token && publicRoute?.access === 'private' && currentTime > decoded.exp) {
-    const response = NextResponse.redirect(REDIRECT_DEFAULT);
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = REDIRECT_DEFAULT;
+    const response = NextResponse.redirect(redirectUrl);
     response.cookies.delete('token');  // Deleta o cookie 'token' caso expirado
     return response;
   }

@@ -1,6 +1,7 @@
 'use client'
 
 import useProduct from "@/store/useProduct";
+import { ProductConfig } from "@/types/Product";
 import { faClose, faGear, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
@@ -12,38 +13,48 @@ type TQuantity = {
 
 function QuantityConfig() {
   const store = useProduct();
-  const [configs, setConfigs] = useState(store.product.configs?.find(c => c.type === 'quantity'));
-  const [list, setList] = useState<TQuantity[]>(configs? JSON.parse(configs.config) : []);
+  const [configs, setConfigs] = useState<ProductConfig | undefined>(() => {
+    if (store.product.config && Array.isArray(store.product.config)) {
+      return store.product.config.find(c => c.type === 'quantity');
+    }
+    return undefined;
+  });
+  const [list, setList] = useState<TQuantity[]>(configs && configs.type === 'quantity' && configs.config ? JSON.parse(configs.config) : []);
 
   useEffect(() => {
-    const newConfigs = store.product.configs.find(config => config.type === 'quantity');
+    // Verifica se store.product.config é um array ou um único objeto
+    const newConfigs = Array.isArray(store.product.config)
+     ? store.product.config.find(c => c.type === 'quantity')
+      : undefined;
     setConfigs(newConfigs);
     setList(newConfigs ? JSON.parse(newConfigs.config) : []);
-  }, [store.product.configs]);
+  }, [store.product.config]);
 
   const handleAddQuantity = () => {
     const newConfig = [
       ...list,
       {
         id: Date.now(),
-        quantity: 1
-      }
+        quantity: 1,
+      },
     ];
+    console.log('config', configs);
+    console.log('list', list);
     setList(newConfig);
-    store.setConfig({id: configs!.id, config: JSON.stringify(newConfig)});
-  }
+    store.setConfig({ id: configs?.id, config: JSON.stringify(newConfig) });
+  };
 
   const handleUpdateQuantity = (id: number, field: keyof TQuantity, value: string) => {
-    const updatedList = list.map(item => item.id === id ? { ...item, [field]: Number(value) } : item);
+    const updatedList = list.map(item => (item.id === id ? { ...item, [field]: Number(value) } : item));
     setList(updatedList);
-    store.setConfig({id: configs!.id, config: JSON.stringify(updatedList)});
-  }
+    store.setConfig({ id: configs!.id, config: JSON.stringify(updatedList) });
+  };
 
   const removeQuantity = (id: number) => {
     const newConfig = list.filter(item => item.id !== id);
     setList(newConfig);
-    store.setConfig({id: configs!.id, config: JSON.stringify(newConfig)});
-  }
+    store.setConfig({ id: configs!.id, config: JSON.stringify(newConfig) });
+  };
 
   return (
     <div className="p-2 border border-neutral-200 text-left rounded-lg flex flex-col gap-4">

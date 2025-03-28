@@ -5,6 +5,7 @@ import { useSignOut } from 'react-firebase-hooks/auth';
 import { auth } from "@/services/FirebaseConfig";
 import { useRouter } from "next/navigation";
 import { Product } from "@/components/Product";
+import useProductStore from '@/store/useProduct';
 
 export default function Novo() {
 
@@ -20,7 +21,7 @@ export default function Novo() {
   }
 
   return (
-    <div className="relative h-full p-4 flex flex-col gap-3">
+    <div className="relative xl:h-full p-4 flex flex-col gap-3">
       {/* Barra de navegação */}
       <div className="relative bg-white flex justify-stretch rounded-lg shadow-sm border border-neutral-100 text-center">
         {/* <a href="/" className="py-3 flex-1 transition border-b-2 border-white hover:border-blue-500 cursor-pointer">Shop</a> */}
