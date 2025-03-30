@@ -1,3 +1,4 @@
+import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 interface TelegramFileResponse {
@@ -42,6 +43,7 @@ export async function POST(request: NextRequest) {
   const telegramUrl = `https://api.telegram.org/bot${botToken}/sendMediaGroup`;
 
   try {
+
     const contentType = request.headers.get('content-type') || '';
     if (!contentType.includes('multipart/form-data')) {
       return NextResponse.json({ error: "Tipo de conteúdo inválido. Esperado multipart/form-data" }, { status: 400 });
@@ -49,6 +51,7 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const photos = formData.getAll("photos");
+    const category_slug = formData.get("category_slug");
 
     const groupPhotos = photos.map((photo, index) => {
       const photoFile = new File([photo], `photo${index}.jpg`);
@@ -63,24 +66,61 @@ export async function POST(request: NextRequest) {
     formData.append('chat_id', chatId!);
     formData.append('media', JSON.stringify(groupPhotos));
 
-    const response = await fetch(telegramUrl, {
-      method: "POST",
-      body: formData,
+    // const response = await fetch(telegramUrl, {
+    //   method: "POST",
+    //   body: formData,
+    // });
+
+    // const result = await response.json();
+
+    // console.log(result);
+
+    // // Validação de retorno explícita
+    // if (!result.ok) {
+    //   console.error("Erro no Telegram:", result);
+    //   throw new Error('Erro ao enviar fotos para o Telegram.');
+    // }
+
+    // const fileIds = result.result.map((photoGroup: { photo: { file_id: string, file_unique_id: string }[] }) =>{
+    //   console.log(photoGroup);
+    //   return {
+    //     file_id: photoGroup.photo[0].file_id,
+    //     file_unique_id: photoGroup.photo.map(photo => photo.file_unique_id)
+    //   }
+    // });
+
+    const fileIds = [
+      {
+        file_id: 'AgACAgEAAxkDAAPCZ-fviiL7-9iM4ViKiYERWK90hnsAArKsMRsFQ0BHr-NF9TdeXyIBAAMCAANzAAM2BA',
+        file_unique_id: [
+          'AQADsqwxGwVDQEd4',
+          'AQADsqwxGwVDQEdy',
+          'AQADsqwxGwVDQEd9',
+          'AQADsqwxGwVDQEd-'
+        ]
+      },
+      {
+        file_id: 'AgACAgEAAxUHZ-fxIUoi5EetvaC5sP56KE2ORbUAArOsMRsFQ0BHBLGWtnEe3oMBAAMCAANzAAM2BA',
+        file_unique_id: [ 'AQADs6wxGwVDQEd4', 'AQADs6wxGwVDQEdy', 'AQADs6wxGwVDQEd9' ]
+      }
+    ]
+
+    console.log('registerPhoto before');
+
+    const registerPhoto = await prisma.productImages.createMany({
+      data: fileIds.map(file => ({
+        telegram_id: JSON.stringify(file.file_unique_id),
+        category_slug: String(category_slug),
+        telegram_group_id: file.file_id,
+      }))
     });
 
-    const result = await response.json();
-
-    // Validação de retorno explícita
-    if (!result.ok) {
-      console.error("Erro no Telegram:", result);
-      throw new Error('Erro ao enviar fotos para o Telegram.');
+    if (registerPhoto.count < 1) {
+      console.error("Erro no Banco de Dados:", registerPhoto);
+      throw new Error('Nã conseguimos salvar as imagens no nosso banco de dados.');
     }
 
-    const fileIds = result.result.map((photoGroup: { photo: { file_id: string }[] }) =>
-      photoGroup.photo.map(photo => photo.file_id)
-    );
-
-    return NextResponse.json({ ok: true, result: fileIds }, { status: response.status });
+    return NextResponse.json({ ok: true, result: fileIds }, { status: 200 });
   } catch (error) {
     console.error("Erro ao enviar foto:", error);
     return NextResponse.json({ error: "Erro ao enviar foto", details: (error as Error).message }, { status: 500 });

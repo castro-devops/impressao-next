@@ -3,6 +3,7 @@ import { post, get } from "@/utils/api";
 const BASE_URL_SEND_PHOTO = '/api/v1/cloud/sendPhoto';
 
 export async function sendPhoto(formData: FormData): Promise<{ ok: boolean; result: { photo: { file_id: string }[] }[] }> {
+  // Faz o upload da imagem para o Telegram e retorna o `file_id`
   const response = await post<{ ok: boolean; result: { photo: { file_id: string }[] }[] }>(BASE_URL_SEND_PHOTO, {
     body: formData,
   });
@@ -11,6 +12,8 @@ export async function sendPhoto(formData: FormData): Promise<{ ok: boolean; resu
   if (!response.ok) {
     throw new Error('Erro ao enviar fotos.');
   }
+
+  console.log('response', response);
 
   return response;
 }

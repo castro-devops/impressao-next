@@ -28,7 +28,7 @@ export function useSendPhoto() {
   const [error, setError] = useState<{ message: string; status: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleSendPhoto(photos: FileList) {
+  async function handleSendPhoto(photos: FileList, category: string) {
       setIsLoading(true);
       setError(null);
 
@@ -42,6 +42,7 @@ export function useSendPhoto() {
     for (let i = 0; i < photos.length; i++) {
       formData.append('photos', photos[i]);
     }
+    formData.append('category_slug', category);
 
     // for (const pair of formData.entries()) {
     //   console.log(pair[0], pair[1]); // Deve exibir os arquivos

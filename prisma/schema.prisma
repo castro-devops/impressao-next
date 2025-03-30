@@ -24,11 +24,11 @@ model Product {
   id            String            @id @default(uuid())
   name          String
   slug          String            @unique
-  description   String?
   category_slug String
   created_at    DateTime          @default(now())
   updated_at    DateTime?         @updatedAt
   active        Boolean           @default(true)
+  description   String?
   cart_item     CartItem?
   product_imgs  ImagesOnProduct[]
   config        ProductConfig?
@@ -50,11 +50,12 @@ model ProductConfig {
 }
 
 model ProductImages {
-  id            String            @id @default(uuid())
-  telegram_id   String            @db.LongText
-  category_slug String
-  products      ImagesOnProduct[]
-  categories    Category          @relation(fields: [category_slug], references: [slug], onDelete: Cascade)
+  id                String            @id @default(uuid())
+  telegram_id       String            @db.LongText
+  category_slug     String
+  telegram_group_id String            @db.LongText
+  products          ImagesOnProduct[]
+  categories        Category          @relation(fields: [category_slug], references: [slug], onDelete: Cascade)
 
   @@index([category_slug], map: "product_images_category_slug_fkey")
   @@map("product_images")

@@ -43,9 +43,13 @@ export function useCreateProduct(): UseCreateProductReturn {
     setIsLoading(true);
     setError(null);
 
+    console.log('productData', productData);
+
     try {
       // Enviando as fotos
-      const savePhotos = await handleSendPhoto(photos);
+      const savePhotos = await handleSendPhoto(photos, productData.category_slug);
+
+      console.log('savePhotos', savePhotos);
 
       if (!savePhotos || !savePhotos.ok) {
         setError({
@@ -56,9 +60,14 @@ export function useCreateProduct(): UseCreateProductReturn {
       }
 
       // Processando os IDs das fotos
-      const photoIds = savePhotos.result.map(
-        (group: { photo: { file_id: string }[] }) => group.photo[2].file_id
-      );
+      const photoIds = savePhotos.result.map((group: {file_id: string, file_unique_id: string[] }) => {
+          return {
+            file_id: group.file_id,
+            file_unique_id: JSON.stringify(group.file_unique_id),
+          }
+      });
+
+      console.log('photoIds', photoIds);
 
       // Preparando os dados do produto
       const finishProduct: IProduct = {
@@ -85,8 +94,6 @@ export function useCreateProduct(): UseCreateProductReturn {
           schema: configResponse.schema,
         };
       }
-
-      console.log(finalResponse);
 
       setData(finalResponse);
       return finalResponse;

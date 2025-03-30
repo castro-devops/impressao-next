@@ -19,7 +19,6 @@ export async function apiFetch<T>(url: string, options: RequestInit): Promise<T>
 }
 
 export async function post<T>(url: string, options: { headers?: Record<string, string>, body: BodyInit }): Promise<T> {
-  console.log('options:', options);
   return await apiFetch<T>(url, {
     method: 'POST',
     ...options,

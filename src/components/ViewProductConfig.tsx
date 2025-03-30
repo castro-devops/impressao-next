@@ -49,11 +49,9 @@ export function ViewConfigs() {
 
       // Verificar se parsedConfigs já é igual ao novo valor
       if (JSON.stringify(parsedConfigs) !== JSON.stringify(newParsedConfigs)) {
-        console.log("Before processing:", parsedConfigs);
         setParsedConfigs(newParsedConfigs);
       }
     }
-    console.log(configs);
   }, [configs, parsedConfigs]);
 
 

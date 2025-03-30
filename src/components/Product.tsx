@@ -38,7 +38,7 @@ export function Product({ data, create = false }: { data?: Product; create?: boo
   const validFields: Record<string, string> = {
     photos: "border-red-500",
     name: "border-red-500",
-    category: "border-red-500",
+    category_slug: "border-red-500",
     description: "border-red-500",
   };
 
@@ -119,23 +119,23 @@ export function Product({ data, create = false }: { data?: Product; create?: boo
     const updatedFiles = dataTransfer.files;
 
     // Passando um objeto parcial para manter a compatibilidade de tipos
-    store.setProduct({ photosSrcs: updateSrcs }, 'photosSrcs');  // Passa como um objeto parcial
-    store.setProduct({ photos: updatedFiles }, 'photos');  // Passa como um objeto parcial
+    store.setProduct(updateSrcs, 'photosSrcs');  // Passa como um objeto parcial
+    store.setProduct(updatedFiles, 'photos');  // Passa como um objeto parcial
   };
 
 
   const handleResetProduct = () => { store.rmProduct(); setLocalDescription(''); };
 
   // Sincroniza o estado inicial do produto no Zustand
-  useEffect(() => {
-    store.setEditMagic(create);
-    if (data) {
-      store.setProduct(data.name, "name");
-      store.setProduct(data.description || '', "description");
-      store.setProduct(data.category_slug, "category_slug");
-      store.setConfig(data.config ?? {}); // Configuração inicial (vazia ou existente)
-    }
-  }, [create, data]);
+  // useEffect(() => {
+  //   store.setEditMagic(create);
+  //   if (data) {
+  //     store.setProduct(data.name, "name");
+  //     store.setProduct(data.description || '', "description");
+  //     store.setProduct(data.category_slug, "category_slug");
+  //     store.setConfig(data.config ?? {});
+  //   }
+  // }, [create, data]);
 
   const renderSetPhotos = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -153,13 +153,13 @@ export function Product({ data, create = false }: { data?: Product; create?: boo
 
           // Verifica se já leu todos os arquivos
           if (newPhotosSrcs.length === files.length) {
-            store.setProduct({ photosSrcs: newPhotosSrcs }, 'photosSrcs');  // Passa como objeto parcial
+            store.setProduct(newPhotosSrcs, 'photosSrcs');
           }
         };
         reader.readAsDataURL(file);
       });
 
-      store.setProduct({ photos: fileList }, 'photos');  // Passa como objeto parcial
+      store.setProduct(fileList, 'photos');  // Passa como objeto parcial
     }
   };
 
@@ -187,9 +187,12 @@ export function Product({ data, create = false }: { data?: Product; create?: boo
       // Validação do config
       const config = store.product.config;
       const isValidConfig = (config: any) => {
+
         if (!config) return false;
         try {
-          const parsedConfig = JSON.parse(config.config);
+
+          const configSize = config.find((c: any) => c.type === 'size');
+          const parsedConfig = JSON.parse(configSize.config);
           const isValidConfigStructure = Array.isArray(parsedConfig) && parsedConfig.length > 0;
 
           if (config.meter_2) {
@@ -218,6 +221,8 @@ export function Product({ data, create = false }: { data?: Product; create?: boo
         store.product.photos as FileList
       );
 
+      console.log('component product', response);
+
       if (response) {
         setError({ message: "Produto criado com sucesso.", type: "success" });
         store.rmProduct();
@@ -231,9 +236,6 @@ export function Product({ data, create = false }: { data?: Product; create?: boo
       setLoading(false);
     }
   };
-
-
-
   return (
     <div className="w-auto md:w-full max-w-[1350px] flex flex-col gap-5 lg:flex-1 lg:min-h-0">
       {/* Evento de Loading */}

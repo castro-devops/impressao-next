@@ -38,8 +38,7 @@ function QuantityConfig() {
         quantity: 1,
       },
     ];
-    console.log('config', configs);
-    console.log('list', list);
+    
     setList(newConfig);
     store.setConfig({ id: configs?.id, config: JSON.stringify(newConfig) });
   };

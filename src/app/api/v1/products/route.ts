@@ -27,6 +27,8 @@ export async function POST(request: Request) {
       );
     }
 
+    // console.log('DATAS', name, description, category_slug, imgs_id);
+
     // Validação: Verificar se a categoria existe
     const categoryExists = await prisma.category.findUnique({
       where: { slug: category_slug },
@@ -45,11 +47,10 @@ export async function POST(request: Request) {
         slug,
         description,
         category_slug,
-        product_imgs: {
-            create: imgs_id.map((imageId: string) => ({ image_id: imageId })),
-        },
       },
     });
+
+    console.log('newProduct', newProduct);
 
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {
