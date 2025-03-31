@@ -50,8 +50,6 @@ export async function POST(request: Request) {
       },
     });
 
-    console.log('newProduct', newProduct);
-
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {
     console.error("Erro ao cadastrar o produto:", error instanceof Error ? error.message : error);

@@ -67,8 +67,6 @@ export function useCreateProduct(): UseCreateProductReturn {
           }
       });
 
-      console.log('photoIds', photoIds);
-
       // Preparando os dados do produto
       const finishProduct: IProduct = {
         ...productData,
@@ -85,6 +83,8 @@ export function useCreateProduct(): UseCreateProductReturn {
 
       // Criando as configurações, se necessário
       let finalResponse: IProductWithConfig = response;
+
+      console.log('final', finalResponse);
 
       if (productData.config) {
         const configResponse = await createConfig(response.id!, productData.config);
